@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shock Impedance Matching Calculator</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --card-alt: #f8fafc;
+  --input-bg: #fafbfc;
+  --input-focus-bg: #ffffff;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --link: #2563eb;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --success: #059669;
+  --error: #dc2626;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --header-from: #1e40af;
+  --header-to: #3b82f6;
+  --interface-bg: #eff6ff;
+  --interface-border: #bfdbfe;
+  --eq-bg: #f1f5f9;
+  --kbd-bg: #f1f5f9;
+  --btn-secondary-hover: #cbd5e1;
+  --btn-example-bg: #f0fdf4;
+  --btn-example-border: #bbf7d0;
+  --btn-example-hover: #dcfce7;
+}
+body.dark {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card-alt: #1a2332;
+  --input-bg: #1e293b;
+  --input-focus-bg: #1a2332;
+  --text: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --header-from: #0f172a;
+  --header-to: #1e40af;
+  --interface-bg: #1e3a5f;
+  --interface-border: #2563eb;
+  --eq-bg: #1a2332;
+  --kbd-bg: #1a2332;
+  --btn-secondary-hover: #475569;
+  --btn-example-bg: #064e3b;
+  --btn-example-border: #059669;
+  --btn-example-hover: #065f46;
+  --link: #60a5fa;
+  .result-card.interface .label {
+    color: #e2e8f0;
+  }
+  .result-card .label {
+    color: #cbd5e1;
+  }
+}
+body.dark input[type="number"] {
+  color-scheme: dark;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 24px;
+}
+a { color: var(--link); }
+.container { max-width: 1200px; margin: 0 auto; }
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  color: #fff;
+  border-radius: var(--radius);
+}
+header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+header p { font-size: 0.95rem; opacity: 0.9; }
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.panel h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--primary);
+  color: var(--primary);
+}
+.form-group { margin-bottom: 12px; }
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.form-group .unit {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: 4px;
+  font-weight: 400;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--input-bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+}
+.form-group select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  background: var(--input-focus-bg);
+}
+.form-group input.error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+}
+.form-group .error-msg {
+  font-size: 0.75rem;
+  color: var(--error);
+  margin-top: 2px;
+  display: none;
+}
+.btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.btn-row .btn-group .btn { flex: 1; }
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-row .btn { min-height: 59px; }
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary {
+  background: var(--border);
+  color: var(--text);
+}
+.btn-secondary:hover { background: var(--btn-secondary-hover); }
+.btn-example {
+  background: var(--btn-example-bg);
+  color: var(--success);
+  border: 1px solid var(--btn-example-border);
+  text-align: center;
+  line-height: 1.35;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.btn-example:hover { background: var(--btn-example-hover); }
+#results {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  display: none;
+}
+#results h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--success);
+  color: var(--success);
+}
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.result-card {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.result-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.result-card .value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+  margin-top: 2px;
+}
+.result-card .value .val-unit {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+.result-card.interface {
+  grid-column: 1 / -1;
+  background: var(--interface-bg);
+  border-color: var(--interface-border);
+}
+.result-card.interface .label { color: var(--primary); }
+#plot {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  height: 480px;
+}
+.collapsible {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.collapsible-header {
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+.collapsible-header:hover { background: var(--card-alt); }
+.collapsible-header .arrow {
+  transition: transform 0.25s ease;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.collapsible.open .collapsible-header .arrow { transform: rotate(180deg); }
+.collapsible-body {
+  padding: 0 20px 20px;
+  display: none;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.collapsible.open .collapsible-body { display: block; }
+.eq {
+  font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+  background: var(--eq-bg);
+  padding: 8px 14px;
+  border-radius: 4px;
+  margin: 6px 0 10px;
+  border-left: 3px solid var(--primary);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.eq .eq-label {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+.assumptions-list { padding-left: 20px; }
+.assumptions-list li { margin-bottom: 4px; }
+@media (max-width: 780px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .result-grid { grid-template-columns: 1fr 1fr; }
+  #plot { height: 360px; }
+}
+@media (max-width: 500px) {
+  .result-grid { grid-template-columns: 1fr; }
+}
+.hidden { display: none !important; }
+.inline-error {
+  color: var(--error);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: none;
+}
+.inline-error.show { display: block; }
+kbd {
+  background: var(--kbd-bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.8rem;
+  font-family: "SF Mono", monospace;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Shock Impedance Matching Calculator</h1>
+  <p>1D planar shock physics &mdash; Rankine&ndash;Hugoniot relations with linear / quadratic Us&ndash;Up equation of state</p>
+</header>
+
+<div class="grid-2">
+  <div class="panel" id="panelA">
+    <h2>Material A</h2>
+    <div class="form-group">
+      <label>Preset Material</label>
+      <div style="display:flex;gap:8px;">
+        <select id="presetA" style="flex:1;">
+          <option value="">&mdash; Custom &mdash;</option>
+        </select>
+        <button id="resetPresetA" class="btn btn-secondary" style="padding:6px 14px;font-size:0.9rem;" title="Reset to preset values">↺</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="nameA" value="Material A" placeholder="e.g. Aluminum">
+    </div>
+    <div class="form-group">
+      <label>Initial density, <span class="unit">&rho;<sub>0</sub></span> <span class="unit">(g/cm&sup3;)</span></label>
+      <input type="number" id="rho0A" step="any" min="0.001" value="2.785" placeholder="2.785">
+    </div>
+    <div id="usUpGroupA">
+      <div class="form-group">
+        <label>Bulk sound speed, <span class="unit">C<sub>0</sub></span> <span class="unit">(km/s)</span></label>
+        <input type="number" id="C0A" step="any" min="0.001" value="5.328" placeholder="5.328">
+      </div>
+      <div class="form-group">
+        <label>Hugoniot slope, <span class="unit">s</span></label>
+        <input type="number" id="sA" step="any" min="0" value="1.338" placeholder="1.338">
+      </div>
+      <div class="form-group">
+        <label>Quadratic coefficient, <span class="unit">s<sub>2</sub></span> <span class="unit">(s/km)</span></label>
+        <input type="number" id="s2A" step="any" value="0" placeholder="0">
+      </div>
+    </div>
+    <hr style="border: none; height: 2px; margin: 20px 0 16px; background: repeating-linear-gradient(to right, var(--primary) 0, var(--primary) 12px, transparent 12px, transparent 20px);">
+    <div class="form-group">
+      <label>Configuration:</label>
+      <select id="bcTypeA">
+        <option value="flyer">Flyer plate impacting a stationary target</option>
+        <option value="shock">Shock wave interaction at a material interface</option>
+        <option value="detonation">Detonation wave interaction at a material interface</option>
+      </select>
+    </div>
+    <div class="form-group" id="vimpGroup">
+      <label>Flyer plate velocity <span class="unit">(km/s)</span></label>
+      <input type="number" id="Vimp" step="any" min="0.001" value="2.0" placeholder="2.0">
+    </div>
+    <div class="form-group" id="p1Group" style="display:none;">
+      <label>Shock wave pressure <span class="unit">(GPa)</span></label>
+      <input type="number" id="P1" step="any" min="0.001" value="20" placeholder="20">
+    </div>
+    <div id="detGroupA" style="display:none;">
+      <div class="form-group">
+        <label>Detonation velocity, <span class="unit">D</span> <span class="unit">(km/s)</span></label>
+        <input type="number" id="DA" step="any" min="0.001" value="8.9" placeholder="8.9">
+      </div>
+      <div class="form-group">
+        <label>CJ pressure, <span class="unit">P<sub>CJ</sub></span> <span class="unit">(GPa)</span></label>
+        <input type="number" id="PCJA" step="any" min="0.001" value="21.15" placeholder="21.15">
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="panelB">
+    <h2>Material B &mdash; Target</h2>
+    <div class="form-group">
+      <label>Preset Material</label>
+      <div style="display:flex;gap:8px;">
+        <select id="presetB" style="flex:1;">
+          <option value="">&mdash; Custom &mdash;</option>
+        </select>
+        <button id="resetPresetB" class="btn btn-secondary" style="padding:6px 14px;font-size:0.9rem;" title="Reset to preset values">↺</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="nameB" value="Material B" placeholder="e.g. Copper">
+    </div>
+    <div class="form-group">
+      <label>Initial density, <span class="unit">&rho;<sub>0</sub></span> <span class="unit">(g/cm&sup3;)</span></label>
+      <input type="number" id="rho0B" step="any" min="0.001" value="8.93" placeholder="8.93">
+    </div>
+    <div class="form-group">
+      <label>Bulk sound speed, <span class="unit">C<sub>0</sub></span> <span class="unit">(km/s)</span></label>
+      <input type="number" id="C0B" step="any" min="0.001" value="3.94" placeholder="3.94">
+    </div>
+    <div class="form-group">
+      <label>Hugoniot slope, <span class="unit">s</span></label>
+      <input type="number" id="sB" step="any" min="0" value="1.489" placeholder="1.489">
+    </div>
+    <div class="form-group">
+      <label>Quadratic coefficient, <span class="unit">s<sub>2</sub></span> <span class="unit">(s/km)</span></label>
+      <input type="number" id="s2B" step="any" value="0" placeholder="0">
+    </div>
+  </div>
+</div>
+
+<div class="btn-row">
+  <div class="btn-group">
+    <button class="btn btn-example" id="btnExample">Example:<br>Aluminum &rarr; Steel</button>
+    <button class="btn btn-example" id="btnExample2">Example:<br>Aluminum &rarr; Copper</button>
+    <button class="btn btn-example" id="btnExample3">Example:<br>TNT &rarr; Polyethylene</button>
+  </div>
+  <div class="btn-group" style="justify-content:flex-end;">
+    <button class="btn btn-primary" id="btnCalc">Calculate</button>
+    <button class="btn btn-secondary" id="btnSwap" title="Swap materials A and B">Swap A ↔ B</button>
+    <button class="btn btn-secondary" id="btnTheme" aria-label="Toggle dark mode">☾</button>
+  </div>
+</div>
+<span class="inline-error" id="calcError"></span>
+
+<div id="results">
+  <h2>Results &mdash; Impedance Match Solution</h2>
+  <div class="result-grid">
+    <div class="result-card interface" id="resInterface">
+      <div class="label">Interface State</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label">Particle Velocity, U<sub>p</sub></div>
+          <div class="value"><span id="resUpInt">0</span><span class="val-unit">km/s</span></div>
+        </div>
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label">Pressure, P</div>
+          <div class="value"><span id="resPInt">0</span><span class="val-unit">GPa</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="result-card interface" id="resGroupA">
+      <div class="label">Material A &mdash; <span id="resNameA">A</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px;">
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label" id="resALabel1">Particle Velocity Jump, &Delta;U<sub>p</sub></div>
+          <div class="value"><span id="resUpAval">0</span><span class="val-unit" id="resAUnit1">km/s</span></div>
+        </div>
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label" id="resALabel2">Shock Velocity, U<sub>s</sub></div>
+          <div class="value"><span id="resUsAval">0</span><span class="val-unit" id="resAUnit2">km/s</span></div>
+        </div>
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label" id="resALabel3">Shocked Density</div>
+          <div class="value"><span id="resRhoAval">0</span><span class="val-unit" id="resAUnit3">g/cm&sup3;</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="result-card interface" id="resGroupB">
+      <div class="label">Material B &mdash; <span id="resNameB">B</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px;">
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label">Particle Velocity, U<sub>p</sub></div>
+          <div class="value"><span id="resUpBval">0</span><span class="val-unit">km/s</span></div>
+        </div>
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label">Shock Velocity, U<sub>s</sub></div>
+          <div class="value"><span id="resUsBval">0</span><span class="val-unit">km/s</span></div>
+        </div>
+        <div class="result-card" style="padding:10px 12px;">
+          <div class="label">Shocked Density</div>
+          <div class="value"><span id="resRhoBval">0</span><span class="val-unit">g/cm&sup3;</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="plot"></div>
+
+<div class="collapsible" id="theorySection">
+  <div class="collapsible-header">
+    <span>Theory &amp; Governing Equations</span>
+    <span class="arrow">&#9660;</span>
+  </div>
+  <div class="collapsible-body">
+    <p><strong>Rankine&ndash;Hugoniot jump conditions</strong> (1D planar shock, steady wave):</p>
+    <div class="eq">
+      <span class="eq-label">Conservation of mass</span>
+      &rho;<sub>0</sub>&thinsp;U<sub>s</sub> = &rho;&thinsp;(U<sub>s</sub> &minus; U<sub>p</sub>)
+    </div>
+    <div class="eq">
+      <span class="eq-label">Conservation of momentum</span>
+      P &minus; P<sub>0</sub> = &rho;<sub>0</sub>&thinsp;U<sub>s</sub>&thinsp;U<sub>p</sub>
+    </div>
+    <p style="margin-top:8px;"><strong>Linear / quadratic Us&ndash;Up material model</strong> (empirical fit for many solids):</p>
+    <div class="eq">
+      <span class="eq-label">Shock velocity &ndash; particle velocity relation</span>
+      U<sub>s</sub> = C<sub>0</sub> + s&thinsp;U<sub>p</sub> + s<sub>2</sub>&thinsp;U<sub>p</sub><sup>2</sup>
+    </div>
+    <p>Substituting into the momentum equation gives pressure as a function of particle velocity (set s<sub>2</sub> = 0 for linear model):</p>
+    <div class="eq">
+      <span class="eq-label">Hugoniot P&ndash;Up curve</span>
+      P(U<sub>p</sub>) = &rho;<sub>0</sub>&thinsp;(C<sub>0</sub> + s&thinsp;U<sub>p</sub> + s<sub>2</sub>&thinsp;U<sub>p</sub><sup>2</sup>)&thinsp;U<sub>p</sub>
+    </div>
+    <p style="margin-top:8px;"><strong>Incident shock interaction</strong> &mdash; a steady shock wave in Material A (pressure <em>P<sub>1</sub></em>) arrives at the interface with Material B. The interaction sends a reflected wave back into A and a transmitted shock into B:</p>
+    <div class="eq">
+      <span class="eq-label">Incident shock state on A&rsquo;s principal Hugoniot</span>
+      P<sub>1</sub> = &rho;<sub>0,A</sub>&thinsp;(C<sub>0,A</sub> + s<sub>A</sub>&thinsp;U<sub>p1</sub> + s<sub>2,A</sub>&thinsp;U<sub>p1</sub><sup>2</sup>)&thinsp;U<sub>p1</sub>
+    </div>
+    <div class="eq">
+      <span class="eq-label">Reflected Hugoniot (mirror method)</span>
+      P<sub>r</sub>(U<sub>p</sub>) = &rho;<sub>0,A</sub>&thinsp;(C<sub>0,A</sub> + s<sub>A</sub>&thinsp;U<sub>p,m</sub> + s<sub>2,A</sub>&thinsp;U<sub>p,m</sub><sup>2</sup>)&thinsp;U<sub>p,m</sub><br>
+      U<sub>p,m</sub> = 2&thinsp;U<sub>p1</sub> &minus; U<sub>p</sub>
+    </div>
+    <p style="margin-top:8px;"><strong>Impedance matching</strong> &mdash; at the flyer/target interface, pressure and particle velocity are continuous:</p>
+    <div class="eq">
+      <span class="eq-label">Target Hugoniot (centered at rest)</span>
+      P<sub>t</sub>(U<sub>p</sub>) = &rho;<sub>0,t</sub>&thinsp;(C<sub>0,t</sub> + s<sub>t</sub>&thinsp;U<sub>p</sub> + s<sub>2,t</sub>&thinsp;U<sub>p</sub><sup>2</sup>)&thinsp;U<sub>p</sub>
+    </div>
+    <div class="eq">
+      <span class="eq-label">Flyer reflected Hugoniot (centered at V<sub>imp</sub>)</span>
+      P<sub>f</sub>(U<sub>p</sub>) = &rho;<sub>0,f</sub>&thinsp;(C<sub>0,f</sub> + s<sub>f</sub>&thinsp;&Delta;U<sub>p</sub> + s<sub>2,f</sub>&thinsp;&Delta;U<sub>p</sub><sup>2</sup>)&thinsp;&Delta;U<sub>p</sub><br>
+      &Delta;U<sub>p</sub> = V<sub>imp</sub> &minus; U<sub>p</sub>
+    </div>
+    <p style="margin-top:8px;"><strong>Detonation impedance matching</strong> &mdash; a steady detonation wave propagates through the explosive at velocity <em>D</em>. The Chapman&ndash;Jouguet (CJ) state is the sonic plane at the end of the reaction zone. The explosive products are modeled as a &gamma;-law gas:</p>
+    <div class="eq">
+      <span class="eq-label">Polytropic exponent</span>
+      &gamma; = &rho;<sub>0</sub>&thinsp;D<sup>2</sup> &frasl; P<sub>CJ</sub> &minus; 1
+    </div>
+    <div class="eq">
+      <span class="eq-label">CJ particle velocity</span>
+      U<sub>p,CJ</sub> = D &frasl; (&gamma; + 1)
+    </div>
+    <div class="eq">
+      <span class="eq-label">CJ sound speed</span>
+      c<sub>CJ</sub> = &gamma; D &frasl; (&gamma; + 1)
+    </div>
+    <div class="eq">
+      <span class="eq-label">CJ density</span>
+      &rho;<sub>CJ</sub> = &rho;<sub>0</sub>&thinsp;(&gamma; + 1) &frasl; &gamma;
+    </div>
+    <p>The release of the products from the CJ state follows the &gamma;-law isentrope. Along the backward C<sup>+</sup> characteristic, the Riemann invariant is conserved:</p>
+    <div class="eq">
+      <span class="eq-label">Riemann invariant</span>
+      u<sub>p</sub> + 2c &frasl; (&gamma; &minus; 1) = U<sub>p,CJ</sub> + 2c<sub>CJ</sub> &frasl; (&gamma; &minus; 1)
+    </div>
+    <div class="eq">
+      <span class="eq-label">Product isentrope (P &le; P<sub>CJ</sub>)</span>
+      U<sub>p</sub>(P) = U<sub>p,CJ</sub> + (2c<sub>CJ</sub> &frasl; (&gamma; &minus; 1))&thinsp;(1 &minus; (P &frasl; P<sub>CJ</sub>)<sup>(&gamma; &minus; 1) &frasl; 2&gamma;</sup>)
+    </div>
+    <p>For an overdriven detonation (P &gt; P<sub>CJ</sub>), the reflected shock Hugoniot in the products is used:</p>
+    <div class="eq">
+      <span class="eq-label">Product reflected shock (P &gt; P<sub>CJ</sub>)</span>
+      U<sub>p</sub>(P) = U<sub>p,CJ</sub> &minus; (P &minus; P<sub>CJ</sub>)&thinsp;<span style="font-size:1.2em;">&radic;</span><span style="text-decoration:overline;">&thinsp;2 &frasl; &rho;<sub>CJ</sub>&thinsp;((&gamma;+1)P + (&gamma;&minus;1)P<sub>CJ</sub>)&thinsp;</span>
+    </div>
+    <p>In all three configurations, the interface particle velocity <em>U<sub>p</sub></em> is found where pressure is continuous across the interface: <em>P<sub>A</sub>(U<sub>p</sub>) = P<sub>B</sub>(U<sub>p</sub>)</em>. The function <em>P<sub>A</sub>(U<sub>p</sub>)</em> is the flyer reflected Hugoniot, the mirror-method reflected Hugoniot, or the &gamma;-law product isentrope depending on the configuration. The solution is obtained via numerical root finding (bisection method) in each case.</p>
+    <p style="margin-top:8px;"><strong>Units note:</strong> With &rho;<sub>0</sub> in g/cm&sup3;, velocities in km/s, the product &rho;<sub>0</sub>&thinsp;U<sub>s</sub>&thinsp;U<sub>p</sub> yields pressure directly in GPa.</p>
+  </div>
+</div>
+
+<div class="collapsible" id="assumptionsSection">
+  <div class="collapsible-header">
+    <span>Assumptions &amp; Limitations</span>
+    <span class="arrow">&#9660;</span>
+  </div>
+  <div class="collapsible-body">
+    <ul class="assumptions-list">
+      <li>The materials listed under Elements, Alloys, Synthetics, Compounds, and Explosives are taken from Paul Cooper's textbook <em>Explosives Engineering</em> (see references).</li>
+      <li>One-dimensional planar geometry (no edge release, no 2D/3D effects)</li>
+      <li>Linear / quadratic Us&ndash;Up relationship approximates the shock state (empirical fit)</li>
+      <li>Both materials are initially at zero pressure and ambient temperature</li>
+      <li>Release is approximated by the reflected Hugoniot (isentropic approximation)</li>
+      <li>No phase transitions, chemical reactions, or strength effects</li>
+      <li>Elastic precursor neglected (hydrostatic approximation)</li>
+      <li>No spallation or fracture</li>
+      <li>Steady, planar shock waves (no wave profile evolution)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="collapsible" id="referencesSection">
+  <div class="collapsible-header">
+    <span>References</span>
+    <span class="arrow">&#9660;</span>
+  </div>
+  <div class="collapsible-body">
+    <ol style="padding-left:20px;margin:0;">
+      <li style="margin-bottom:6px;">
+        Cooper, P.W. (1996).
+        <em>Explosives Engineering.</em>
+        Wiley-VCH, New York.
+        <br><a href="https://www.wiley.com/en-us/Explosives+Engineering-p-9780471186366" target="_blank" rel="noopener">wiley.com</a>.
+      </li>
+      <li style="margin-bottom:6px;">
+        Forbes, J.W. (2012).
+        <em>Shock Wave Compression of Condensed Matter: A Primer.</em>
+        Springer, Berlin.
+        <br><a href="https://link.springer.com/book/10.1007/978-3-642-26379-6" target="_blank" rel="noopener">springer.com</a>.
+      </li>
+      <li style="margin-bottom:6px;">
+        Gibbs, T.R. &amp; Popolato, A., eds. (1980).
+        <em>LASL Explosive Property Data.</em>
+        University of California Press, Berkeley.
+        <br><a href="https://archive.org/details/LASL_Explosive_Property_Data" target="_blank" rel="noopener">archive.org/details/LASL_Explosive_Property_Data</a>
+        &mdash; free full text.
+      </li>
+      <li style="margin-bottom:6px;">
+        Marsh, S.P., ed. (1980).
+        <em>LASL Shock Hugoniot Data.</em>
+        University of California Press, Berkeley.
+        <br><a href="https://archive.org/details/LASL_Shock_Hugoniot_Data" target="_blank" rel="noopener">archive.org/details/LASL_Shock_Hugoniot_Data</a>
+        &mdash; free full text.
+      </li>
+      <li style="margin-bottom:6px;">
+        Meyers, M.A. (1994).
+        <em>Dynamic Behavior of Materials.</em>
+        John Wiley &amp; Sons, New York.
+        <br><a href="https://www.wiley.com/en-us/Dynamic+Behavior+of+Materials-p-9780471582625" target="_blank" rel="noopener">wiley.com</a>.
+      </li>
+      <li style="margin-bottom:6px;">
+        Vigil, M.G. (1989).
+        <em>Projectile Impact Hugoniot Parameters for Selected Materials.</em>
+        Sandia National Laboratories Report SAND89-1571.
+        <br><a href="https://www.osti.gov/servlets/purl/5658829" target="_blank" rel="noopener">osti.gov/servlets/purl/5658829</a>
+        &mdash; free full text.
+      </li>
+    </ol>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ================================================================
+// SECTION 0 — Materials Database
+// ================================================================
+
+const MATERIALS = {
+  // -- Elements
+  "Antimony": { rho0: 6.700, C0: 1.983, s: 1.652, s2: 0 },
+  "Barium (Above P = 115 and us = 2.54)": { rho0: 3.705, C0: 0.700, s: 1.600, s2: 0 },
+  "Beryllium": { rho0: 1.851, C0: 7.998, s: 1.124, s2: 0 },
+  "Bismuth": { rho0: 9.836, C0: 1.826, s: 1.473, s2: 0 },
+  "Cadmium": { rho0: 8.639, C0: 2.434, s: 1.684, s2: 0 },
+  "Calcium": { rho0: 1.547, C0: 3.602, s: 0.948, s2: 1.20 },
+  "Cesium": { rho0: 1.826, C0: 1.048, s: 1.043, s2: 0.051 },
+  "Chromium": { rho0: 7.117, C0: 5.173, s: 1.473, s2: 1.19 },
+  "Cobalt": { rho0: 8.820, C0: 4.752, s: 1.315, s2: 0 },
+  "Copper": { rho0: 8.930, C0: 3.940, s: 1.489, s2: 0 },
+  "Germanium (Above P = 300 and us = 4.20)": { rho0: 5.328, C0: 1.750, s: 1.750, s2: 0 },
+  "Gold": { rho0: 19.240, C0: 3.056, s: 1.572, s2: 0 },
+  "Hafnium (Below P = 400 and us = 3.86)": { rho0: 12.885, C0: 2.954, s: 1.121, s2: 0 },
+  "Hafnium (Above transition)": { rho0: 12.885, C0: 2.453, s: 1.353, s2: 0 },
+  "Indium": { rho0: 7.279, C0: 2.419, s: 1.536, s2: 0 },
+  "Iridium": { rho0: 22.484, C0: 3.916, s: 1.457, s2: 0 },
+  "Iron (Above us = 5.0)": { rho0: 7.850, C0: 3.574, s: 1.920, s2: -0.068 },
+  "Lead": { rho0: 11.350, C0: 2.051, s: 1.460, s2: 0 },
+  "Lithium": { rho0: 0.530, C0: 4.645, s: 1.133, s2: 0 },
+  "Magnesium": { rho0: 1.740, C0: 4.492, s: 1.263, s2: 0 },
+  "Mercury": { rho0: 13.540, C0: 1.490, s: 2.047, s2: 0 },
+  "Molybdenum": { rho0: 10.206, C0: 5.124, s: 1.233, s2: 0 },
+  "Nickel": { rho0: 8.874, C0: 4.438, s: 1.207, s2: 0 },
+  "Niobium": { rho0: 8.586, C0: 4.438, s: 1.207, s2: 0 },
+  "Palladium": { rho0: 11.991, C0: 3.948, s: 1.588, s2: 0 },
+  "Platinum": { rho0: 21.419, C0: 3.598, s: 1.544, s2: 0 },
+  "Potassium": { rho0: 0.860, C0: 1.974, s: 1.179, s2: 0 },
+  "Rhenium": { rho0: 21.021, C0: 4.184, s: 1.367, s2: 0 },
+  "Rhodium": { rho0: 12.428, C0: 4.807, s: 1.376, s2: 0 },
+  "Rubidium": { rho0: 1.530, C0: 1.134, s: 1.272, s2: 0 },
+  "Silver": { rho0: 10.490, C0: 3.229, s: 1.595, s2: 0 },
+  "Sodium": { rho0: 0.968, C0: 2.629, s: 1.223, s2: 0 },
+  "Strontium (Above P = 150 and us = 3.63)": { rho0: 2.628, C0: 1.700, s: 1.230, s2: 0 },
+  "Sulfur": { rho0: 2.020, C0: 3.223, s: 0.959, s2: 0 },
+  "Tantalum": { rho0: 16.654, C0: 3.414, s: 1.201, s2: 0 },
+  "Thallium": { rho0: 11.840, C0: 1.862, s: 1.523, s2: 0 },
+  "Thorium": { rho0: 11.680, C0: 2.133, s: 1.263, s2: 0 },
+  "Tin": { rho0: 7.287, C0: 2.608, s: 1.486, s2: 0 },
+  "Titanium (Below P = 175 and us = 5.74)": { rho0: 4.528, C0: 5.220, s: 0.767, s2: 0 },
+  "Titanium (Above transition)": { rho0: 4.528, C0: 4.877, s: 1.049, s2: 0 },
+  "Tungsten": { rho0: 19.224, C0: 4.029, s: 1.237, s2: 0 },
+  "Uranium": { rho0: 18.950, C0: 2.487, s: 2.200, s2: 0 },
+  "Vanadium": { rho0: 6.100, C0: 5.077, s: 1.201, s2: 0 },
+  "Zinc": { rho0: 7.138, C0: 3.005, s: 1.581, s2: 0 },
+  "Zirconium (Above P = 260 and us = 4.63)": { rho0: 6.505, C0: 3.757, s: 1.018, s2: 0 },
+  "Zirconium (Above transition)": { rho0: 6.505, C0: 3.296, s: 1.271, s2: 0 },
+
+  // -- Alloys
+  "Brass": { rho0: 8.450, C0: 3.726, s: 1.434, s2: 0 },
+  "2024 Aluminum": { rho0: 2.785, C0: 5.328, s: 1.338, s2: 0 },
+  "921-T Aluminum": { rho0: 2.833, C0: 5.041, s: 1.420, s2: 0 },
+  "Lithium-magnesium alloy": { rho0: 1.403, C0: 4.247, s: 1.284, s2: 0 },
+  "Magnesium alloy AZ-31B": { rho0: 1.775, C0: 4.516, s: 1.256, s2: 0 },
+  "304 Stainless steel": { rho0: 7.896, C0: 4.569, s: 1.490, s2: 0 },
+  "U-3 wt % Mo": { rho0: 18.450, C0: 2.565, s: 2.200, s2: 0 },
+
+  // -- Synthetics
+  "Adiprene": { rho0: 0.927, C0: 2.332, s: 1.536, s2: 0 },
+  "Epoxy resin (Below P = 240 and us = 7.0)": { rho0: 1.186, C0: 2.730, s: 1.493, s2: 0 },
+  "Epoxy resin (Above transition)": { rho0: 1.186, C0: 3.234, s: 1.255, s2: 0 },
+  "Lucite": { rho0: 1.181, C0: 2.260, s: 1.816, s2: 0 },
+  "Neoprene": { rho0: 1.439, C0: 2.785, s: 1.419, s2: 0 },
+  "Nylon": { rho0: 1.140, C0: 2.570, s: 1.849, s2: -0.081 },
+  "Paraffin": { rho0: 0.918, C0: 2.908, s: 1.560, s2: 0 },
+  "Phenoxy": { rho0: 1.178, C0: 2.266, s: 1.698, s2: 0 },
+  "Plexiglass": { rho0: 1.186, C0: 2.598, s: 1.516, s2: 0 },
+  "Polyethylene": { rho0: 0.915, C0: 2.901, s: 1.481, s2: 0 },
+  "Polyrubber": { rho0: 1.010, C0: 0.852, s: 1.865, s2: 0 },
+  "Polystyrene": { rho0: 1.044, C0: 2.746, s: 1.319, s2: 0 },
+  "Polyurethane (Below P = 220 and us = 6.5)": { rho0: 1.265, C0: 2.486, s: 1.577, s2: 0 },
+  "Silastic (RTV-521)": { rho0: 1.372, C0: 0.218, s: 2.694, s2: -0.208 },
+  "Teflon": { rho0: 2.153, C0: 1.841, s: 1.707, s2: 0 },
+
+  // -- Compounds
+  "Periclase (MgO) (Above P = 200 and us = 7.45)": { rho0: 3.585, C0: 6.597, s: 1.369, s2: 0 },
+  "Quartz (Stishovite above P = 400)": { rho0: 2.204, C0: 0.794, s: 1.695, s2: 0 },
+  "Sodium chloride (Transition ignored)": { rho0: 2.165, C0: 3.528, s: 1.343, s2: 0 },
+  "Water": { rho0: 0.998, C0: 1.647, s: 1.921, s2: 0.096 },
+
+  // -- Explosives --
+  "AN (rho0 = 0.86)": { rho0: 0.86, C0: 0.84, s: 1.42, s2: 0 },
+  "AN (rho0 = 1.73)": { rho0: 1.73, C0: 2.20, s: 1.96, s2: 0 },
+  "Baratol (rho0 = 2.611, Us = 2.4-3.66)": { rho0: 2.611, C0: 2.40, s: 1.66, s2: 0 },
+  "Baratol (rho0 = 2.611, Us = 3.66-4.0)": { rho0: 2.611, C0: 1.50, s: 2.16, s2: 0 },
+  "Baratol (rho0 = 2.611)": { rho0: 2.611, C0: 2.79, s: 1.25, s2: 0 },
+  "Comp B (rho0 = 1.70)": { rho0: 1.70, C0: 2.95, s: 1.58, s2: 0 },
+  "Comp B (rho0 = 1.710, Us = 4.40-5.04)": { rho0: 1.710, C0: 1.20, s: 2.81, s2: 0 },
+  "Comp B (cast) (rho0 = 1.700, Us = 3.57-5.02)": { rho0: 1.700, C0: 2.49, s: 1.99, s2: 0 },
+  "Comp B-3 (rho0 = 1.70)": { rho0: 1.70, C0: 3.03, s: 1.73, s2: 0 },
+  "Comp B-3 (rho0 = 1.70, Us = 4.24-7.01)": { rho0: 1.70, C0: 2.88, s: 1.60, s2: 0 },
+  "Comp B-3 (rho0 = 1.72, Us = 3.42-4.45)": { rho0: 1.72, C0: 2.71, s: 1.86, s2: 0 },
+  "Comp B-3 (rho0 = 1.723, Us = 4.42-5.07)": { rho0: 1.723, C0: 1.23, s: 2.81, s2: 0 },
+  "Comp B-3 (cast) (rho0 = 1.680, Us = 3.387-4.469)": { rho0: 1.680, C0: 2.710, s: 1.860, s2: 0 },
+  "Cyclotol (75/25) (rho0 = 1.729, Us = 4.67-5.22)": { rho0: 1.729, C0: 2.02, s: 2.36, s2: 0 },
+  "DATB (rho0 = 1.780, Us = 3.159-4.492)": { rho0: 1.780, C0: 2.449, s: 1.892, s2: 0 },
+  "H-6 (cast) (rho0 = 1.760, Us = 2.832-4.535)": { rho0: 1.760, C0: 2.832, s: 1.695, s2: 0 },
+  "H-6 (cast) (rho0 = 1.76, Us < 3.7)": { rho0: 1.76, C0: 2.654, s: 1.984, s2: 0 },
+  "HBX-1 (cast) (rho0 = 1.750)": { rho0: 1.750, C0: 2.936, s: 1.651, s2: 0 },
+  "HBX-3 (cast) (rho0 = 1.850)": { rho0: 1.850, C0: 3.134, s: 1.605, s2: 0 },
+  "HMX (rho0 = 1.903)": { rho0: 1.903, C0: 2.74, s: 2.6, s2: 0 },
+  "HMX (rho0 = 1.891)": { rho0: 1.891, C0: 2.901, s: 2.058, s2: 0 },
+  "HNS (rho0 = 1.38, Us = 1.44-1.995)": { rho0: 1.38, C0: 0.61, s: 2.77, s2: 0 },
+  "HNS (rho0 = 1.57, Us = 1.00-3.18)": { rho0: 1.57, C0: 1.00, s: 3.21, s2: 0 },
+  "HNS-II (rho0 = 1.47)": { rho0: 1.47, C0: 1.10, s: 3.48, s2: 0 },
+  "HNS-II (rho0 = 1.58)": { rho0: 1.58, C0: 1.98, s: 1.93, s2: 0 },
+  "LX-04-1 (rho0 = 1.860, Us = 2.61-3.24)": { rho0: 1.860, C0: 2.36, s: 2.43, s2: 0 },
+  "LX-09-0 (rho0 = 1.839)": { rho0: 1.839, C0: 2.43, s: 2.90, s2: 0 },
+  "LX-17-0 (rho0 = 1.90)": { rho0: 1.90, C0: 2.33, s: 2.32, s2: 0 },
+  "NC (rho0 = 1.59)": { rho0: 1.59, C0: 2.24, s: 1.66, s2: 0 },
+  "NM (rho0 = 1.13, Us = 2.83-4.40)": { rho0: 1.13, C0: 2.00, s: 1.38, s2: 0 },
+  "NQ (rho0 = 1.717)": { rho0: 1.717, C0: 3.54, s: 1.48, s2: 0 },
+  "NQ (C) (rho0 = 1.688)": { rho0: 1.688, C0: 3.05, s: 1.73, s2: 0 },
+  "Octol (rho0 = 1.80)": { rho0: 1.80, C0: 3.01, s: 1.72, s2: 0 },
+  "Octol (cast) (rho0 = 1.803, Us = 3.24-4.97)": { rho0: 1.803, C0: 2.21, s: 2.51, s2: 0 },
+  "PBX-9011-06 (rho0 = 1.790, Us = 4.1-6.1)": { rho0: 1.790, C0: 2.225, s: 2.644, s2: 0 },
+  "PBX-9404-03 (rho0 = 1.721, Us = 2.4-3.7)": { rho0: 1.721, C0: 1.89, s: 1.57, s2: 0 },
+  "PBX-9404-03 (rho0 = 1.84, Us = 2.45-6.05)": { rho0: 1.84, C0: 2.45, s: 2.48, s2: 0 },
+  "PBX-9404 (rho0 = 1.84, Us < 3.2)": { rho0: 1.84, C0: 2.310, s: 2.767, s2: 0 },
+  "PBX-9407 (rho0 = 1.60, Us = 2.11-3.18)": { rho0: 1.60, C0: 1.328, s: 1.993, s2: 0 },
+  "PBX-9501-01 (rho0 = 1.844, Us = 2.9-4.4)": { rho0: 1.844, C0: 2.683, s: 1.906, s2: 0 },
+  "PBX-9604 (rho0 = 1.491)": { rho0: 1.491, C0: 0.987, s: 2.509, s2: 0 },
+  "Pentolite 50/50 (rho0 = 1.67)": { rho0: 1.67, C0: 2.83, s: 1.91, s2: 0 },
+  "Pentolite 50/50 (rho0 = 1.676, Us = 4.52-5.25)": { rho0: 1.676, C0: 2.885, s: 3.20, s2: 0 },
+  "PETN (rho0 = 0.82)": { rho0: 0.82, C0: 0.47, s: 1.73, s2: 0 },
+  "PETN (rho0 = 1.59, Us = 1.40-2.14)": { rho0: 1.59, C0: 1.33, s: 2.18, s2: 0 },
+  "PETN (rho0 = 1.59, Us = 1.86-2.65)": { rho0: 1.59, C0: 0.64, s: 4.19, s2: 0 },
+  "PETN (rho0 = 1.60, Us = 1.89-2.56)": { rho0: 1.60, C0: 1.32, s: 2.58, s2: 0 },
+  "PETN (rho0 = 1.72, Us = 2.83-3.18)": { rho0: 1.72, C0: 2.326, s: 2.342, s2: 0 },
+  "PETN (rho0 = 1.72, Us = 2.52-3.87)": { rho0: 1.72, C0: 1.83, s: 3.45, s2: 0 },
+  "PETN (rho0 = 1.75)": { rho0: 1.75, C0: 2.53, s: 1.88, s2: 0 },
+  "PETN (rho0 = 1.77)": { rho0: 1.77, C0: 2.42, s: 1.91, s2: 0 },
+  "PETN (rho0 = 1.77, Us < 4.195)": { rho0: 1.77, C0: 2.811, s: 1.73, s2: 0 },
+  "Polystyrene (rho0 = 1.05)": { rho0: 1.05, C0: 2.40, s: 1.637, s2: 0 },
+  "RDX (rho0 = 1.00)": { rho0: 1.00, C0: 0.40, s: 2.00, s2: 0 },
+  "RDX (rho0 = 1.64, Us = 2.00-2.16)": { rho0: 1.64, C0: 1.93, s: 0.666, s2: 0 },
+  "RDX (rho0 = 1.64, Us = 2.14-2.63)": { rho0: 1.64, C0: 0.70, s: 4.11, s2: 0 },
+  "RDX (rho0 = 1.799)": { rho0: 1.799, C0: 2.78, s: 1.90, s2: 0 },
+  "RDX (rho0 = 1.80, Us = 4.21-5.45)": { rho0: 1.80, C0: 2.87, s: 1.61, s2: 0 },
+  "TATB (rho0 = 1.847, Us = 3.125-5.629)": { rho0: 1.847, C0: 2.340, s: 2.316, s2: 0 },
+  "TATB (rho0 = 1.876, Us = 1.50-3.23)": { rho0: 1.876, C0: 1.46, s: 3.68, s2: 0 },
+  "TATB (rho0 = 1.876, Us = 3.23-5.9)": { rho0: 1.876, C0: 2.037, s: 2.497, s2: 0 },
+  "TATB (rho0 = 1.937, Us < 3.404)": { rho0: 1.937, C0: 2.90, s: 1.68, s2: 0 },
+  "Tetryl (rho0 = 0.86)": { rho0: 0.86, C0: 0.35, s: 1.75, s2: 0 },
+  "Tetryl (rho0 = 1.70, Us = 3.08-4.17)": { rho0: 1.70, C0: 2.4763, s: 1.416, s2: 0 },
+  "Tetryl (rho0 = 1.73)": { rho0: 1.73, C0: 2.17, s: 1.91, s2: 0 },
+  "TNT (cast) (rho0 = 1.614, Us = 3.034-5.414)": { rho0: 1.614, C0: 2.390, s: 2.050, s2: 0 },
+  "TNT (cast) (rho0 = 1.62, Us < 3.7)": { rho0: 1.62, C0: 2.274, s: 2.652, s2: 0 },
+  "TNT (cast) (rho0 = 1.62, 3.7 < Us)": { rho0: 1.62, C0: 2.987, s: 1.363, s2: 0 },
+  "TNT (cast) (rho0 = 1.63)": { rho0: 1.63, C0: 2.57, s: 1.88, s2: 0 },
+  "TNT (liquid, 82°C) (rho0 = 1.472, Us = 3.49-4.65)": { rho0: 1.472, C0: 2.14, s: 1.57, s2: 0 },
+  "TNT (pressed) (rho0 = 0.98, Us = 1.05-3.26)": { rho0: 0.98, C0: 0.366, s: 1.813, s2: 0 },
+  "TNT (pressed) (rho0 = 1.643, Us > 2.78)": { rho0: 1.643, C0: 2.372, s: 2.16, s2: 0 },
+  "Tritonal (cast) (rho0 = 1.73, Us < 3.8)": { rho0: 1.73, C0: 2.313, s: 2.769, s2: 0 },
+  "XTX-8003 (rho0 = 1.53, Us = 2.38-4.06)": { rho0: 1.53, C0: 1.49, s: 3.30, s2: 0 },
+
+  // -- Other
+  "1100 Aluminum": { rho0: 2.712, C0: 5.386, s: 1.339, s2: 0 },
+  "6061-T6 Aluminum": { rho0: 2.703, C0: 5.35, s: 1.34, s2: 0 },
+  "7075 Aluminum": { rho0: 2.804, C0: 5.33, s: 1.34, s2: 0 },
+  "Pure Aluminum": { rho0: 2.71, C0: 5.37, s: 1.36, s2: 0 },
+  "Tellurium Copper": { rho0: 8.9, C0: 3.94, s: 1.489, s2: 0 },
+  "Cartridge Brass": { rho0: 8.45, C0: 3.81, s: 1.42, s2: 0 },
+  "Naval Brass": { rho0: 8.41, C0: 3.76, s: 1.43, s2: 0 },
+  "Phosphor Bronze": { rho0: 8.86, C0: 3.78, s: 1.43, s2: 0 },
+  "SS 316": { rho0: 7.96, C0: 4.57, s: 1.48, s2: 0 },
+  "SS 347": { rho0: 7.92, C0: 4.57, s: 1.49, s2: 0 },
+  "4340 Steel": { rho0: 7.83, C0: 3.578, s: 1.62, s2: 0 },
+  "Mild Steel 1018": { rho0: 7.86, C0: 3.61, s: 1.61, s2: 0 },
+  "Maraging Steel 350": { rho0: 8.1, C0: 3.8, s: 1.58, s2: 0 },
+  "Armco Iron": { rho0: 7.85, C0: 3.57, s: 1.65, s2: 0 },
+  "Pure Titanium": { rho0: 4.527, C0: 4.77, s: 1.073, s2: 0 },
+  "Ti-6Al-4V": { rho0: 4.42, C0: 4.77, s: 1.073, s2: 0 },
+  "Nickel 200": { rho0: 8.874, C0: 4.58, s: 1.44, s2: 0 },
+  "Depleted Uranium": { rho0: 18.6, C0: 2.49, s: 1.68, s2: 0 },
+  "Magnesium AZ31B": { rho0: 1.78, C0: 4.495, s: 1.254, s2: 0 },
+  "Pure Magnesium": { rho0: 1.74, C0: 4.53, s: 1.242, s2: 0 },
+  "Lexan (Polycarbonate)": { rho0: 1.196, C0: 2.3, s: 1.58, s2: 0 },
+  "PMMA (Lucite)": { rho0: 1.186, C0: 2.6, s: 1.52, s2: 0 },
+  "Nylon 6/6": { rho0: 1.14, C0: 2.62, s: 1.62, s2: 0 },
+  "Polyethylene (Low Density)": { rho0: 0.918, C0: 2.9, s: 1.48, s2: 0 },
+  "Polyethylene (High Density)": { rho0: 0.954, C0: 2.9, s: 1.48, s2: 0 },
+
+  // -- Windows (VISAR/PDV standards) --
+  "LiF [100]": { rho0: 2.638, C0: 5.148, s: 1.353, s2: 0 },
+  "Z-cut Quartz": { rho0: 2.65, C0: 5.57, s: 1.47, s2: 0 },
+  "Fused Silica": { rho0: 2.204, C0: 2.8, s: 1.32, s2: 0 },
+  "Sapphire": { rho0: 3.985, C0: 8.73, s: 1.23, s2: 0 },
+  "Pyrex": { rho0: 2.23, C0: 4, s: 1.32, s2: 0 },
+
+  // -- More Aluminum alloys --
+  "5083 Aluminum": { rho0: 2.66, C0: 5.38, s: 1.34, s2: 0 },
+  "7039 Aluminum": { rho0: 2.77, C0: 5.33, s: 1.33, s2: 0 },
+  "3003 Aluminum": { rho0: 2.73, C0: 5.35, s: 1.34, s2: 0 },
+
+  // -- More Steels & Nickel alloys --
+  "D6AC Steel": { rho0: 7.82, C0: 3.58, s: 1.63, s2: 0 },
+  "HY-80 Steel": { rho0: 7.83, C0: 3.58, s: 1.62, s2: 0 },
+  "HY-100 Steel": { rho0: 7.84, C0: 3.58, s: 1.61, s2: 0 },
+  "Inconel 718": { rho0: 8.22, C0: 4.8, s: 1.43, s2: 0 },
+  "Maraging Steel 250": { rho0: 8, C0: 3.7, s: 1.59, s2: 0 },
+  "Maraging Steel 300": { rho0: 8.02, C0: 3.7, s: 1.58, s2: 0 },
+
+  // -- More Titanium alloys --
+  "Ti-6Al-6V-2Sn": { rho0: 4.5, C0: 4.77, s: 1.07, s2: 0 },
+
+  // -- Polymers --
+  "Kel-F 81 (PCTFE)": { rho0: 2.14, C0: 1.87, s: 1.68, s2: 0 },
+  "Epoxy": { rho0: 1.19, C0: 2.67, s: 1.52, s2: 0 },
+  "Polyimide (Kapton)": { rho0: 1.43, C0: 2.55, s: 1.5, s2: 0 },
+  "Polypropylene": { rho0: 0.906, C0: 2.69, s: 1.53, s2: 0 },
+  "Estane 5707": { rho0: 1.19, C0: 2.5, s: 1.56, s2: 0 },
+
+  // -- Ceramics --
+  "Alumina AD-85": { rho0: 3.41, C0: 5.98, s: 1.17, s2: 0 },
+  "Alumina AD-995": { rho0: 3.9, C0: 7.31, s: 1.11, s2: 0 },
+  "Silicon Carbide (SiC)": { rho0: 3.1, C0: 7.6, s: 1.1, s2: 0 },
+  "Boron Carbide (B4C)": { rho0: 2.5, C0: 8, s: 1, s2: 0 },
+
+  // -- Explosives (unreacted Hugoniot) --
+  "TNT": { rho0: 1.63, C0: 2.49, s: 2.02, s2: 0 },
+  "PBX 9502": { rho0: 1.89, C0: 2.51, s: 1.85, s2: 0 },
+  "RDX": { rho0: 1.73, C0: 2.55, s: 2.06, s2: 0 },
+  "PETN": { rho0: 1.76, C0: 2.23, s: 2.26, s2: 0 },
+  "TATB": { rho0: 1.88, C0: 2.54, s: 1.85, s2: 0 },
+  "LX-04": { rho0: 1.86, C0: 2.71, s: 1.96, s2: 0 },
+  "LX-14": { rho0: 1.83, C0: 2.73, s: 1.95, s2: 0 },
+  "LX-17": { rho0: 1.9, C0: 2.51, s: 1.85, s2: 0 },
+};
+
+const MATERIAL_GROUPS = [
+  {
+    label: 'Elements',
+    keys: [
+      'Antimony', 'Barium (Above P = 115 and us = 2.54)', 'Beryllium', 'Bismuth',
+      'Cadmium', 'Calcium', 'Cesium', 'Chromium', 'Cobalt', 'Copper',
+      'Germanium (Above P = 300 and us = 4.20)', 'Gold',
+      'Hafnium (Below P = 400 and us = 3.86)', 'Hafnium (Above transition)',
+      'Indium', 'Iridium', 'Iron (Above us = 5.0)',
+      'Lead', 'Lithium', 'Magnesium', 'Mercury', 'Molybdenum',
+      'Nickel', 'Niobium', 'Palladium', 'Platinum', 'Potassium',
+      'Rhenium', 'Rhodium', 'Rubidium', 'Silver', 'Sodium',
+      'Strontium (Above P = 150 and us = 3.63)', 'Sulfur',
+      'Tantalum', 'Thallium', 'Thorium', 'Tin',
+      'Titanium (Below P = 175 and us = 5.74)', 'Titanium (Above transition)',
+      'Tungsten', 'Uranium', 'Vanadium', 'Zinc',
+      'Zirconium (Above P = 260 and us = 4.63)', 'Zirconium (Above transition)'
+    ]
+  },
+  {
+    label: 'Alloys',
+    keys: [
+      'Brass', '2024 Aluminum', '921-T Aluminum', 'Lithium-magnesium alloy',
+      'Magnesium alloy AZ-31B', '304 Stainless steel', 'U-3 wt % Mo'
+    ]
+  },
+  {
+    label: 'Synthetics',
+    keys: [
+      'Adiprene', 'Epoxy resin (Below P = 240 and us = 7.0)',
+      'Epoxy resin (Above transition)', 'Lucite', 'Neoprene', 'Nylon',
+      'Paraffin', 'Phenoxy', 'Plexiglass', 'Polyethylene', 'Polyrubber',
+      'Polystyrene', 'Polyurethane (Below P = 220 and us = 6.5)',
+      'Silastic (RTV-521)', 'Teflon'
+    ]
+  },
+  {
+    label: 'Compounds',
+    keys: [
+      'Periclase (MgO) (Above P = 200 and us = 7.45)',
+      'Quartz (Stishovite above P = 400)',
+      'Sodium chloride (Transition ignored)',
+      'Water'
+    ]
+  },
+  {
+    label: 'Explosives',
+    keys: [
+      'AN (rho0 = 0.86)', 'AN (rho0 = 1.73)',
+      'Baratol (rho0 = 2.611, Us = 2.4-3.66)', 'Baratol (rho0 = 2.611, Us = 3.66-4.0)', 'Baratol (rho0 = 2.611)',
+      'Comp B (rho0 = 1.70)', 'Comp B (rho0 = 1.710, Us = 4.40-5.04)', 'Comp B (cast) (rho0 = 1.700, Us = 3.57-5.02)',
+      'Comp B-3 (rho0 = 1.70)', 'Comp B-3 (rho0 = 1.70, Us = 4.24-7.01)', 'Comp B-3 (rho0 = 1.72, Us = 3.42-4.45)', 'Comp B-3 (rho0 = 1.723, Us = 4.42-5.07)', 'Comp B-3 (cast) (rho0 = 1.680, Us = 3.387-4.469)',
+      'Cyclotol (75/25) (rho0 = 1.729, Us = 4.67-5.22)',
+      'DATB (rho0 = 1.780, Us = 3.159-4.492)',
+      'H-6 (cast) (rho0 = 1.760, Us = 2.832-4.535)', 'H-6 (cast) (rho0 = 1.76, Us < 3.7)',
+      'HBX-1 (cast) (rho0 = 1.750)', 'HBX-3 (cast) (rho0 = 1.850)',
+      'HMX (rho0 = 1.903)', 'HMX (rho0 = 1.891)',
+      'HNS (rho0 = 1.38, Us = 1.44-1.995)', 'HNS (rho0 = 1.57, Us = 1.00-3.18)',
+      'HNS-II (rho0 = 1.47)', 'HNS-II (rho0 = 1.58)',
+      'LX-04-1 (rho0 = 1.860, Us = 2.61-3.24)', 'LX-09-0 (rho0 = 1.839)', 'LX-17-0 (rho0 = 1.90)',
+      'NC (rho0 = 1.59)', 'NM (rho0 = 1.13, Us = 2.83-4.40)', 'NQ (rho0 = 1.717)', 'NQ (C) (rho0 = 1.688)',
+      'Octol (rho0 = 1.80)', 'Octol (cast) (rho0 = 1.803, Us = 3.24-4.97)',
+      'PBX-9011-06 (rho0 = 1.790, Us = 4.1-6.1)',
+      'PBX-9404-03 (rho0 = 1.721, Us = 2.4-3.7)', 'PBX-9404-03 (rho0 = 1.84, Us = 2.45-6.05)', 'PBX-9404 (rho0 = 1.84, Us < 3.2)',
+      'PBX-9407 (rho0 = 1.60, Us = 2.11-3.18)',
+      'PBX-9501-01 (rho0 = 1.844, Us = 2.9-4.4)', 'PBX-9604 (rho0 = 1.491)',
+      'Pentolite 50/50 (rho0 = 1.67)', 'Pentolite 50/50 (rho0 = 1.676, Us = 4.52-5.25)',
+      'PETN (rho0 = 0.82)', 'PETN (rho0 = 1.59, Us = 1.40-2.14)', 'PETN (rho0 = 1.59, Us = 1.86-2.65)', 'PETN (rho0 = 1.60, Us = 1.89-2.56)', 'PETN (rho0 = 1.72, Us = 2.83-3.18)', 'PETN (rho0 = 1.72, Us = 2.52-3.87)', 'PETN (rho0 = 1.75)', 'PETN (rho0 = 1.77)', 'PETN (rho0 = 1.77, Us < 4.195)',
+      'Polystyrene (rho0 = 1.05)',
+      'RDX (rho0 = 1.00)', 'RDX (rho0 = 1.64, Us = 2.00-2.16)', 'RDX (rho0 = 1.64, Us = 2.14-2.63)', 'RDX (rho0 = 1.799)', 'RDX (rho0 = 1.80, Us = 4.21-5.45)',
+      'TATB (rho0 = 1.847, Us = 3.125-5.629)', 'TATB (rho0 = 1.876, Us = 1.50-3.23)', 'TATB (rho0 = 1.876, Us = 3.23-5.9)', 'TATB (rho0 = 1.937, Us < 3.404)',
+      'Tetryl (rho0 = 0.86)', 'Tetryl (rho0 = 1.70, Us = 3.08-4.17)', 'Tetryl (rho0 = 1.73)',
+      'TNT (cast) (rho0 = 1.614, Us = 3.034-5.414)', 'TNT (cast) (rho0 = 1.62, Us < 3.7)', 'TNT (cast) (rho0 = 1.62, 3.7 < Us)', 'TNT (cast) (rho0 = 1.63)',
+      'TNT (liquid, 82°C) (rho0 = 1.472, Us = 3.49-4.65)',
+      'TNT (pressed) (rho0 = 0.98, Us = 1.05-3.26)', 'TNT (pressed) (rho0 = 1.643, Us > 2.78)',
+      'Tritonal (cast) (rho0 = 1.73, Us < 3.8)',
+      'XTX-8003 (rho0 = 1.53, Us = 2.38-4.06)'
+    ]
+  }
+];
+
+// ================================================================
+// SECTION 1 — Physics Engine
+// ================================================================
+
+const Physics = {
+
+  // Linear / quadratic Us-Up relation (empirical Hugoniot)
+  // Us = C0 + s * Up + s2 * Up^2
+  // C0: bulk sound speed [km/s], s: slope [unitless], s2: quadratic coefficient [s/km], Up: particle velocity [km/s]
+  // Returns: shock velocity [km/s]
+  shockVelocity(C0, s, s2, Up) {
+    return C0 + s * Up + s2 * Up * Up;
+  },
+
+  // Rankine-Hugoniot momentum equation
+  // P = rho0 * Us * Up
+  // rho0: initial density [g/cm^3], Us: shock velocity [km/s], Up: particle velocity [km/s]
+  // Returns: pressure [GPa]
+  pressure(rho0, Us, Up) {
+    return rho0 * Us * Up;
+  },
+
+  // Hugoniot for target material centered at (Up=0, P=0)
+  // Pt(Up) = rho0_t * (C0_t + s_t * Up + s2_t * Up^2) * Up
+  targetHugoniot(Up, rho0, C0, s, s2) {
+    const Us = this.shockVelocity(C0, s, s2, Up);
+    return this.pressure(rho0, Us, Up);
+  },
+
+  // Reflected Hugoniot for flyer material centered at (Up=Vimp, P=0)
+  // dUp = Vimp - Up: change in particle velocity in flyer frame
+  // Pf(Up) = rho0_f * (C0_f + s_f * dUp + s2_f * dUp^2) * dUp
+  flyerHugoniot(Up, rho0, C0, s, s2, Vimp) {
+    const dUp = Vimp - Up;
+    if (dUp <= 0) return 0;
+    const Us = this.shockVelocity(C0, s, s2, dUp);
+    return this.pressure(rho0, Us, dUp);
+  },
+
+  // Conservation of mass: rho = rho0 * Us / (Us - Up)
+  density(rho0, Us, Up) {
+    return rho0 * Us / (Us - Up);
+  },
+
+  // Difference function for root finding (flyer mode)
+  // f(Up) = Pf(Up) - Pt(Up)
+  // At the solution: f(Up_int) = 0
+  f(Up, matA, matB) {
+    return this.flyerHugoniot(Up, matA.rho0, matA.C0, matA.s, matA.s2, matA.Vimp)
+         - this.targetHugoniot(Up, matB.rho0, matB.C0, matB.s, matB.s2);
+  },
+
+  // Reflected Hugoniot from an initial shocked state (Up1)
+  // Mirror method: P_ref(u) = principal Hugoniot evaluated at 2·Up1 − u
+  reflectedHugoniot(Up, rho0, C0, s, s2, Up1) {
+    const UpMirror = 2 * Up1 - Up;
+    return UpMirror >= 0 ? this.targetHugoniot(UpMirror, rho0, C0, s, s2) : 0;
+  },
+
+  // Difference function for incident shock mode
+  // f(Up) = P_reflected_A(Up) - P_principal_B(Up)
+  f_incident(Up, matA, matB, Up1) {
+    return this.reflectedHugoniot(Up, matA.rho0, matA.C0, matA.s, matA.s2, Up1)
+         - this.targetHugoniot(Up, matB.rho0, matB.C0, matB.s, matB.s2);
+  },
+
+  // Chapman-Jouguet detonation state
+  // rho0: initial density [g/cm^3], D: detonation velocity [km/s], gamma: polytropic exponent
+  detonationCJ(rho0, D, gamma) {
+    const UpCJ = D / (gamma + 1);
+    const PCJ = rho0 * D * D / (gamma + 1);
+    const rhoCJ = rho0 * (gamma + 1) / gamma;
+    const cCJ = gamma * D / (gamma + 1);
+    return { UpCJ, PCJ, rhoCJ, cCJ };
+  },
+
+  // Particle velocity on the gamma-law release isentrope at pressure P (P <= PCJ)
+  _releaseUp(P, cj, gamma) {
+    const ratio = P / cj.PCJ;
+    return cj.UpCJ + (2 * cj.cCJ / (gamma - 1)) * (1 - Math.pow(ratio, (gamma - 1) / (2 * gamma)));
+  },
+
+  // Particle velocity behind a reflected shock in gamma-law products at pressure P (P >= PCJ)
+  _shockUp(P, cj, gamma) {
+    const numerator = P - cj.PCJ;
+    const denominator = (gamma + 1) * P + (gamma - 1) * cj.PCJ;
+    const du = numerator * Math.sqrt(2 / (cj.rhoCJ * denominator));
+    return cj.UpCJ - du;
+  },
+
+  // Gamma-law product isentrope: pressure at a given particle velocity
+  // Inverts the analytic Up(P) relation via bisection
+  productPressure(Up, rho0, D, gamma, tol = 1e-10, maxIter = 200) {
+    const cj = this.detonationCJ(rho0, D, gamma);
+    const uMax = cj.UpCJ + 2 * cj.cCJ / (gamma - 1);
+
+    if (Math.abs(Up - cj.UpCJ) < 1e-15) return cj.PCJ;
+
+    if (Up > cj.UpCJ) {
+      if (Up >= uMax) return 0;
+      let a = 0, b = cj.PCJ;
+      let fa = this._releaseUp(a, cj, gamma) - Up;
+      let fb = this._releaseUp(b, cj, gamma) - Up;
+      if (fa * fb >= 0) return null;
+      for (let i = 0; i < maxIter; i++) {
+        const mid = (a + b) / 2;
+        const fmid = this._releaseUp(mid, cj, gamma) - Up;
+        if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) return mid;
+        if (fa * fmid < 0) { b = mid; fb = fmid; }
+        else { a = mid; fa = fmid; }
+      }
+      return (a + b) / 2;
+    } else {
+      let a = cj.PCJ, b = cj.PCJ * 100;
+      let fa = this._shockUp(a, cj, gamma) - Up;
+      let fb = this._shockUp(b, cj, gamma) - Up;
+      for (let iter = 0; fa * fb >= 0 && iter < 20; iter++) {
+        b *= 2;
+        fb = this._shockUp(b, cj, gamma) - Up;
+      }
+      if (fa * fb >= 0) return null;
+      for (let i = 0; i < maxIter; i++) {
+        const mid = (a + b) / 2;
+        const fmid = this._shockUp(mid, cj, gamma) - Up;
+        if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) return mid;
+        if (fa * fmid < 0) { b = mid; fb = fmid; }
+        else { a = mid; fa = fmid; }
+      }
+      return (a + b) / 2;
+    }
+  },
+
+  // Difference function for detonation mode
+  f_detonation(Up, matA, matB) {
+    return this.productPressure(Up, matA.rho0, matA.D, matA.gamma)
+         - this.targetHugoniot(Up, matB.rho0, matB.C0, matB.s, matB.s2);
+  },
+
+  // Solve for Up on principal Hugoniot given pressure P (bisection)
+  // P = rho0 * (C0 + s*Up + s2*Up^2) * Up
+  solveUpFromPressure(P, rho0, C0, s, s2, tol = 1e-8, maxIter = 200) {
+    let a = 0;
+    let b = Math.max(1, 10 * P / (rho0 * C0));
+    let fb = this.targetHugoniot(b, rho0, C0, s, s2) - P;
+    while (fb < 0 && b < 1e6) {
+      b *= 2;
+      fb = this.targetHugoniot(b, rho0, C0, s, s2) - P;
+    }
+    let fa = -P;
+    for (let i = 0; i < maxIter; i++) {
+      const mid = (a + b) / 2;
+      const fmid = this.targetHugoniot(mid, rho0, C0, s, s2) - P;
+      if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) return mid;
+      if (fa * fmid < 0) {
+        b = mid;
+        fb = fmid;
+      } else {
+        a = mid;
+        fa = fmid;
+      }
+    }
+    return (a + b) / 2;
+  }
+};
+
+// ================================================================
+// SECTION 2 — Numerical Solver (Bisection Method)
+// ================================================================
+
+const Solver = {
+
+  // Bisection root finding on f(Up) = 0 over Up in [aLower, aUpper]
+  // f must change sign across the interval
+  // tol: convergence tolerance [km/s], maxIter: maximum iterations
+  solve(matA, matB, tol = 1e-8, maxIter = 200) {
+    const Vimp = matA.Vimp;
+    let a = 0;
+    let b = Vimp;
+
+    let fa = Physics.f(a, matA, matB);
+    let fb = Physics.f(b, matA, matB);
+
+    // f(0) = Pf(0) - Pt(0) = Pf(0) - 0 > 0  (positive)
+    // f(Vimp) = Pf(Vimp) - Pt(Vimp) = 0 - Pt(Vimp) < 0  (negative)
+    // So a sign change is guaranteed for physical inputs
+    if (fa * fb >= 0) {
+      return null; // no bracketing — non-physical
+    }
+
+    let mid, fmid;
+    for (let i = 0; i < maxIter; i++) {
+      mid = (a + b) / 2;
+      fmid = Physics.f(mid, matA, matB);
+
+      if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) {
+        return mid; // converged
+      }
+
+      if (fa * fmid < 0) {
+        b = mid;
+        fb = fmid;
+      } else {
+        a = mid;
+        fa = fmid;
+      }
+    }
+
+    return (a + b) / 2; // return best estimate after max iterations
+  },
+
+  // Solver for incident shock mode
+  // Given P1 (initial shock pressure in matA), find interface state
+  // Returns { UpInt, Up1 } or null
+  solveIncident(matA, matB, P1, tol = 1e-8, maxIter = 200) {
+    // Step 1: Solve for Up1 on A's principal Hugoniot
+    const Up1 = Physics.solveUpFromPressure(P1, matA.rho0, matA.C0, matA.s, matA.s2);
+
+    // Step 2: Determine which side of Up1 the solution lies on
+    const PB1 = Physics.targetHugoniot(Up1, matB.rho0, matB.C0, matB.s, matB.s2);
+    const fUp1 = P1 - PB1;
+
+    // Step 3: Bracketing — mirror method guarantees sign change in both cases
+    let a, b;
+    if (fUp1 > 0) {
+      // B is softer — rarefaction: solution at Up > Up1
+      // f(Up1) > 0, f(2·Up1) = 0 - P_target(2·Up1) < 0
+      a = Up1;
+      b = 2 * Up1;
+    } else {
+      // B is stiffer — reflected shock: solution at Up < Up1
+      // f(0) = P_ref(0) - 0 > 0, f(Up1) < 0
+      a = 0;
+      b = Up1;
+    }
+
+    let fa = Physics.f_incident(a, matA, matB, Up1);
+    let fb = Physics.f_incident(b, matA, matB, Up1);
+
+    if (fa * fb >= 0) return null;
+
+    let mid, fmid;
+    for (let i = 0; i < maxIter; i++) {
+      mid = (a + b) / 2;
+      fmid = Physics.f_incident(mid, matA, matB, Up1);
+      if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) {
+        return { UpInt: mid, Up1 };
+      }
+      if (fa * fmid < 0) {
+        b = mid;
+        fb = fmid;
+      } else {
+        a = mid;
+        fa = fmid;
+      }
+    }
+    return { UpInt: (a + b) / 2, Up1 };
+  },
+
+  // Bisection root finding for detonation — inert interface
+  // f(Up) = P_products(Up) - P_inert(Up) over Up in [0, D]
+  solveDetonation(matA, matB, tol = 1e-8, maxIter = 200) {
+    const D = matA.D;
+    let a = 0, b = D;
+
+    let fa = Physics.f_detonation(a, matA, matB);
+    let fb = Physics.f_detonation(b, matA, matB);
+
+    // Expand bracket if no sign change at upper bound
+    for (let iter = 0; fa * fb >= 0 && iter < 20; iter++) {
+      b *= 2;
+      fb = Physics.f_detonation(b, matA, matB);
+    }
+
+    if (fa * fb >= 0) return null;
+
+    let mid, fmid;
+    for (let i = 0; i < maxIter; i++) {
+      mid = (a + b) / 2;
+      fmid = Physics.f_detonation(mid, matA, matB);
+      if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) return mid;
+      if (fa * fmid < 0) { b = mid; fb = fmid; }
+      else { a = mid; fa = fmid; }
+    }
+    return (a + b) / 2;
+  }
+};
+
+// ================================================================
+// SECTION 3 — Plotting (Plotly.js)
+// ================================================================
+
+const Plotter = {
+
+  plotDiv: null,
+
+  init() {
+    this.plotDiv = document.getElementById('plot');
+  },
+
+  // Generate Hugoniot curve data arrays
+  _generateCurves(matA, matB, UpInt, bcType, bcOpts) {
+    const nPts = 300;
+    const isFlyer = bcType === 'flyer';
+    const isDetonation = bcType === 'detonation';
+    const isShock = bcType === 'shock';
+    const Vimp = isFlyer ? matA.Vimp : null;
+    const Up1 = isShock ? bcOpts.Up1 : null;
+
+    // Determine Up range for target Hugoniot
+    const axisMax = isFlyer
+      ? Math.max(Vimp * 1.25, Vimp + 2)
+      : isDetonation
+        ? Math.max(matA.D * 1.5, matA.D + 3)
+        : Math.max(Up1 * 2, Up1 + 2, 5);
+
+    // Target Hugoniot
+    const upTarget = new Array(nPts);
+    const pTarget = new Array(nPts);
+    for (let i = 0; i < nPts; i++) {
+      const up = (i / (nPts - 1)) * axisMax;
+      upTarget[i] = up;
+      pTarget[i] = Physics.targetHugoniot(up, matB.rho0, matB.C0, matB.s, matB.s2);
+    }
+
+    let upFlyer, pFlyer, upRel, pRel, upInit, pInit;
+
+    if (isFlyer) {
+      // Flyer reflected Hugoniot: Up from 0 to Vimp
+      upFlyer = new Array(nPts);
+      pFlyer = new Array(nPts);
+      for (let i = 0; i < nPts; i++) {
+        const up = (i / (nPts - 1)) * Vimp;
+        upFlyer[i] = up;
+        pFlyer[i] = Physics.flyerHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Vimp);
+      }
+
+      // Release isentrope: from UpInt to Vimp
+      const nRel = 100;
+      upRel = new Array(nRel);
+      pRel = new Array(nRel);
+      for (let i = 0; i < nRel; i++) {
+        const frac = i / (nRel - 1);
+        const up = UpInt + (Vimp - UpInt) * frac;
+        upRel[i] = up;
+        pRel[i] = Physics.flyerHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Vimp);
+      }
+    } else if (isDetonation) {
+      // Detonation product isentrope via gamma-law EOS
+      const cj = Physics.detonationCJ(matA.rho0, matA.D, matA.gamma);
+      const uMax = cj.UpCJ + 2 * cj.cCJ / (matA.gamma - 1);
+      const upMax = Math.max(axisMax, uMax);
+
+      upFlyer = new Array(nPts);
+      pFlyer = new Array(nPts);
+      for (let i = 0; i < nPts; i++) {
+        const up = (i / (nPts - 1)) * upMax;
+        upFlyer[i] = up;
+        pFlyer[i] = Physics.productPressure(up, matA.rho0, matA.D, matA.gamma) || 0;
+      }
+
+      // CJ state marker
+      upInit = [cj.UpCJ];
+      pInit = [cj.PCJ];
+
+      // Release path from CJ state to interface (or interface to CJ)
+      const nRel = 100;
+      upRel = new Array(nRel);
+      pRel = new Array(nRel);
+      const start = Math.min(UpInt, cj.UpCJ);
+      const end = Math.max(UpInt, cj.UpCJ);
+      for (let i = 0; i < nRel; i++) {
+        const frac = i / (nRel - 1);
+        const up = start + (end - start) * frac;
+        upRel[i] = up;
+        pRel[i] = Physics.productPressure(up, matA.rho0, matA.D, matA.gamma) || 0;
+      }
+    } else {
+      // Incident shock — reflected Hugoniot via mirror method
+      const P1 = Physics.targetHugoniot(Up1, matA.rho0, matA.C0, matA.s, matA.s2);
+      const upMax = axisMax;
+      upFlyer = new Array(nPts);
+      pFlyer = new Array(nPts);
+      for (let i = 0; i < nPts; i++) {
+        const up = (i / (nPts - 1)) * upMax;
+        upFlyer[i] = up;
+        pFlyer[i] = Physics.reflectedHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Up1);
+      }
+
+      // Initial shock state marker
+      upInit = [Up1];
+      pInit = [P1];
+
+      // Release isentrope: from UpInt toward Up1
+      const nRel = 100;
+      upRel = new Array(nRel);
+      pRel = new Array(nRel);
+      const start = Math.min(UpInt, Up1);
+      const end = Math.max(UpInt, Up1);
+      for (let i = 0; i < nRel; i++) {
+        const frac = i / (nRel - 1);
+        const up = start + (end - start) * frac;
+        upRel[i] = up;
+        pRel[i] = Physics.reflectedHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Up1);
+      }
+    }
+
+    return { upTarget, pTarget, upFlyer, pFlyer, upRel, pRel, upInit, pInit, isFlyer, isDetonation };
+  },
+
+  plot(matA, matB, UpInt, PInt, dark, bcType, bcOpts) {
+    const curves = this._generateCurves(matA, matB, UpInt, bcType, bcOpts);
+    const nameA = matA.name || 'Material A';
+    const nameB = matB.name || 'Material B';
+    const maxP = Math.max(...curves.pTarget, ...curves.pFlyer) * 1.12;
+
+    const isDark = dark || false;
+    const paperColor = isDark ? '#0f172a' : '#ffffff';
+    const textColor = isDark ? '#e2e8f0' : '#1e293b';
+    const gridColor = isDark ? '#1e293b' : '#f1f5f9';
+    const zeroColor = isDark ? '#334155' : '#cbd5e1';
+    const legendBg = isDark ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.9)';
+    const legendBorder = isDark ? '#334155' : '#e2e8f0';
+
+    const traceTarget = {
+      x: curves.upTarget,
+      y: curves.pTarget,
+      type: 'scatter',
+      mode: 'lines',
+      name: `${nameB} (target) — Hugoniot`,
+      line: { color: '#dc2626', width: 2.5 }
+    };
+
+    const reflectedLabel = curves.isFlyer
+      ? `${nameA} (flyer) — Reflected Hugoniot`
+      : curves.isDetonation
+        ? `${nameA} — γ-law product isentrope`
+        : `${nameA} — Reflected Hugoniot (from shocked state)`;
+
+    const traceFlyer = {
+      x: curves.upFlyer,
+      y: curves.pFlyer,
+      type: 'scatter',
+      mode: 'lines',
+      name: reflectedLabel,
+      line: { color: '#3b82f6', width: 2.5 }
+    };
+
+    const releaseLabel = curves.isFlyer
+      ? `${nameA} release isentrope`
+      : curves.isDetonation
+        ? `${nameA} product expansion path`
+        : `${nameA} reflected path`;
+
+    const traceRelease = {
+      x: curves.upRel,
+      y: curves.pRel,
+      type: 'scatter',
+      mode: 'lines',
+      name: releaseLabel,
+      line: { color: '#3b82f6', width: 2, dash: 'dash' }
+    };
+
+    const traces = [traceTarget, traceFlyer, traceRelease];
+
+    // Initial state marker (CJ point for detonation, incident shock for shock mode)
+    if (curves.upInit) {
+      const markerName = curves.isDetonation
+        ? `${nameA} CJ state`
+        : `${nameA} initial shock state`;
+      traces.push({
+        x: curves.upInit,
+        y: curves.pInit,
+        type: 'scatter',
+        mode: 'markers',
+        name: markerName,
+        marker: { color: '#f59e0b', size: 12, symbol: 'diamond', line: { color: '#d97706', width: 2 } }
+      });
+    }
+
+    const traceSolution = {
+      x: [UpInt],
+      y: [PInt],
+      type: 'scatter',
+      mode: 'markers',
+      name: `Interface solution (Up = ${UpInt.toFixed(3)}, P = ${PInt.toFixed(3)})`,
+      marker: { color: '#10b981', size: 14, symbol: 'circle', line: { color: '#059669', width: 2 } }
+    };
+    traces.push(traceSolution);
+
+    const layout = {
+      title: { text: 'Pressure vs Particle Velocity (P-Up)', font: { size: 16, color: textColor } },
+      xaxis: {
+        title: { text: 'Particle Velocity Up [km/s]', font: { size: 13, color: textColor } },
+        autorange: true,
+        zeroline: true,
+        zerolinecolor: zeroColor,
+        gridcolor: gridColor,
+        tickfont: { color: textColor }
+      },
+      yaxis: {
+        title: { text: 'Pressure P [GPa]', font: { size: 13, color: textColor } },
+        range: [0, maxP],
+        zeroline: true,
+        zerolinecolor: zeroColor,
+        gridcolor: gridColor,
+        tickfont: { color: textColor }
+      },
+      legend: {
+        x: 0.02,
+        y: 0.98,
+        bgcolor: legendBg,
+        bordercolor: legendBorder,
+        borderwidth: 1,
+        font: { size: 11, color: textColor }
+      },
+      hovermode: 'closest',
+      margin: { t: 50, r: 30, b: 60, l: 70 },
+      paper_bgcolor: paperColor,
+      plot_bgcolor: paperColor
+    };
+
+    const config = {
+      responsive: true,
+      displayModeBar: true,
+      modeBarButtonsToRemove: ['sendDataToCloud', 'lasso2d', 'select2d'],
+      displaylogo: false
+    };
+
+    Plotly.react(this.plotDiv, traces, layout, config);
+  }
+};
+
+// ================================================================
+// SECTION 4 — UI Controller
+// ================================================================
+
+const UI = {
+
+  _ids: ['nameA', 'rho0A', 'C0A', 'sA', 's2A', 'Vimp', 'P1', 'nameB', 'rho0B', 'C0B', 'sB', 's2B'],
+  _dark: false,
+  _lastPreset: { A: null, B: null },
+  _presetData: { A: null, B: null },
+
+  init() {
+    this._initTheme();
+    this._bindEvents();
+    Plotter.init();
+    this._populateSelects();
+    this._toggleBCInputs(this._el('bcTypeA').value);
+  },
+
+  _initTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      this._dark = true;
+    } else if (saved === 'light') {
+      this._dark = false;
+    } else {
+      this._dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    this._applyTheme();
+  },
+
+  _applyTheme() {
+    document.body.classList.toggle('dark', this._dark);
+    this._el('btnTheme').textContent = this._dark ? '☀' : '☾';
+  },
+
+  _el(id) { return document.getElementById(id); },
+  _val(id) { return parseFloat(this._el(id).value); },
+  _text(id) { return this._el(id).value.trim(); },
+
+  _populateSelects() {
+    ['A', 'B'].forEach(which => {
+      const sel = this._el('preset' + which);
+      sel.innerHTML = '';
+      const customGroup = document.createElement('optgroup');
+      customGroup.label = 'Custom';
+      const customOpt = document.createElement('option');
+      customOpt.value = '';
+      customOpt.textContent = 'User defined material';
+      customGroup.appendChild(customOpt);
+      sel.appendChild(customGroup);
+      const seen = new Set();
+      MATERIAL_GROUPS.forEach(group => {
+        const og = document.createElement('optgroup');
+        og.label = group.label;
+        group.keys.forEach(k => {
+          if (MATERIALS[k]) {
+            const opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = k;
+            og.appendChild(opt);
+            seen.add(k);
+          }
+        });
+        sel.appendChild(og);
+      });
+      const remaining = Object.keys(MATERIALS).filter(k => !seen.has(k)).sort();
+      if (remaining.length > 0) {
+        const og = document.createElement('optgroup');
+        og.label = 'Others';
+        remaining.forEach(k => {
+          const opt = document.createElement('option');
+          opt.value = k;
+          opt.textContent = k;
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      }
+    });
+  },
+
+  _onPresetChange(which) {
+    const sel = this._el('preset' + which);
+    const key = sel.value;
+    if (key && MATERIALS[key]) {
+      const m = MATERIALS[key];
+      this._el('name' + which).value = key;
+      this._el('rho0' + which).value = m.rho0;
+      this._el('C0' + which).value = m.C0;
+      this._el('s' + which).value = m.s;
+      this._el('s2' + which).value = m.s2;
+      this._lastPreset[which] = key;
+      this._presetData[which] = { ...m, name: key };
+    } else {
+      this._lastPreset[which] = null;
+      this._presetData[which] = null;
+    }
+  },
+
+  _resetPreset(which) {
+    const data = this._presetData[which];
+    if (!data) return;
+    this._el('name' + which).value = data.name;
+    this._el('rho0' + which).value = data.rho0;
+    this._el('C0' + which).value = data.C0;
+    this._el('s' + which).value = data.s;
+    this._el('s2' + which).value = data.s2;
+  },
+
+  _swapMaterials() {
+    const swapField = (id) => {
+      const a = this._el(id + 'A').value;
+      const b = this._el(id + 'B').value;
+      this._el(id + 'A').value = b;
+      this._el(id + 'B').value = a;
+    };
+    swapField('name');
+    swapField('rho0');
+    swapField('C0');
+    swapField('s');
+    swapField('s2');
+
+    // Swap preset dropdowns and state
+    const presetA = this._el('presetA').value;
+    const presetB = this._el('presetB').value;
+    this._el('presetA').value = presetB;
+    this._el('presetB').value = presetA;
+
+    const lastA = this._lastPreset.A;
+    const dataA = this._presetData.A;
+    this._lastPreset.A = this._lastPreset.B;
+    this._presetData.A = this._presetData.B;
+    this._lastPreset.B = lastA;
+    this._presetData.B = dataA;
+
+    // Clear results and plot
+    this._clearError();
+    this._clearFieldErrors();
+    this._el('results').style.display = 'none';
+    Plotly.react(Plotter.plotDiv, [], {}, { responsive: true });
+  },
+
+  _getMatA() {
+    const bcType = this._el('bcTypeA').value;
+    const obj = {
+      name: this._text('nameA') || 'Material A',
+      rho0: this._val('rho0A'),
+      bcType
+    };
+    if (bcType === 'detonation') {
+      obj.D = this._val('DA');
+      obj.PCJ = this._val('PCJA');
+      obj.gamma = obj.rho0 * obj.D * obj.D / obj.PCJ - 1;
+    } else {
+      obj.C0 = this._val('C0A');
+      obj.s = this._val('sA');
+      obj.s2 = this._val('s2A');
+    }
+    if (bcType === 'flyer') {
+      obj.Vimp = this._val('Vimp');
+    } else if (bcType === 'shock') {
+      obj.P1 = this._val('P1');
+    }
+    return obj;
+  },
+
+  _getMatB() {
+    return {
+      name: this._text('nameB') || 'Material B',
+      rho0: this._val('rho0B'),
+      C0: this._val('C0B'),
+      s: this._val('sB'),
+      s2: this._val('s2B')
+    };
+  },
+
+  _validate(matA, matB) {
+    const errors = [];
+    const check = (val, name) => {
+      if (val === undefined || val === null || isNaN(val)) errors.push(`${name} is missing or not a number`);
+      else if (val <= 0) errors.push(`${name} must be positive`);
+    };
+    check(matA.rho0, 'Density of material A');
+    if (matA.bcType === 'detonation') {
+      check(matA.D, 'Detonation velocity D');
+      check(matA.PCJ, 'CJ pressure PCJ');
+      if (!isNaN(matA.D) && matA.D > 0 && !isNaN(matA.PCJ) && matA.PCJ > 0) {
+        const g = matA.rho0 * matA.D * matA.D / matA.PCJ - 1;
+        if (g <= 1) errors.push('PCJ must be less than ρ₀·D²/2 (' + (matA.rho0 * matA.D * matA.D / 2).toFixed(2) + ' GPa) for a valid gamma');
+        if (g > 10) errors.push('PCJ is too low — derived gamma (' + g.toFixed(2) + ') is unrealistically high');
+      }
+    } else {
+      check(matA.C0, 'C0 of material A');
+      if (matA.s === undefined || matA.s === null || isNaN(matA.s)) errors.push('Hugoniot slope s of material A is missing');
+      else if (matA.s < 0) errors.push('Hugoniot slope s of material A cannot be negative');
+      if (matA.s2 === undefined || matA.s2 === null || isNaN(matA.s2)) errors.push('Quadratic coefficient s2 of material A is missing');
+    }
+    if (matA.bcType === 'flyer') {
+      check(matA.Vimp, 'Impact velocity');
+    } else if (matA.bcType === 'shock') {
+      check(matA.P1, 'Initial shock pressure');
+    }
+    check(matB.rho0, 'Density of target');
+    check(matB.C0, 'C0 of target');
+    if (matB.s === undefined || matB.s === null || isNaN(matB.s)) errors.push('Hugoniot slope s of target is missing');
+    else if (matB.s < 0) errors.push('Hugoniot slope s of target cannot be negative');
+    if (matB.s2 === undefined || matB.s2 === null || isNaN(matB.s2)) errors.push('Quadratic coefficient s2 of target is missing');
+    return errors;
+  },
+
+  _showError(msg) {
+    const el = this._el('calcError');
+    el.textContent = msg;
+    el.classList.add('show');
+  },
+
+  _clearError() {
+    this._el('calcError').classList.remove('show');
+  },
+
+  _clearFieldErrors() {
+    document.querySelectorAll('.form-group input').forEach(inp => inp.classList.remove('error'));
+  },
+
+  calculate() {
+    this._clearError();
+    this._clearFieldErrors();
+
+    const matA = this._getMatA();
+    const matB = this._getMatB();
+
+    const errs = this._validate(matA, matB);
+    if (errs.length > 0) {
+      this._showError(errs.join('; '));
+      return;
+    }
+
+    let UpInt, PInt, UsA, UsB, PA, PB, rhoA, rhoB, dUpA, Up1, cj;
+
+    if (matA.bcType === 'flyer') {
+      // Flyer impact mode
+      UpInt = Solver.solve(matA, matB);
+      if (UpInt === null) {
+        this._showError('Solver failed — no bracketing solution found. Check your inputs.');
+        return;
+      }
+      PInt = Physics.targetHugoniot(UpInt, matB.rho0, matB.C0, matB.s, matB.s2);
+      dUpA = matA.Vimp - UpInt;
+      UsA = Physics.shockVelocity(matA.C0, matA.s, matA.s2, dUpA);
+      UsB = Physics.shockVelocity(matB.C0, matB.s, matB.s2, UpInt);
+      PA = Physics.pressure(matA.rho0, UsA, dUpA);
+      PB = Physics.pressure(matB.rho0, UsB, UpInt);
+      rhoA = Physics.density(matA.rho0, UsA, dUpA);
+      rhoB = Physics.density(matB.rho0, UsB, UpInt);
+    } else if (matA.bcType === 'detonation') {
+      // Detonation — inert interface mode
+      UpInt = Solver.solveDetonation(matA, matB);
+      if (UpInt === null) {
+        this._showError('Solver failed — no bracketing solution found. Check your inputs.');
+        return;
+      }
+      cj = Physics.detonationCJ(matA.rho0, matA.D, matA.gamma);
+      PInt = Physics.productPressure(UpInt, matA.rho0, matA.D, matA.gamma);
+      dUpA = UpInt;
+      UsB = Physics.shockVelocity(matB.C0, matB.s, matB.s2, UpInt);
+      PB = Physics.pressure(matB.rho0, UsB, UpInt);
+      rhoB = Physics.density(matB.rho0, UsB, UpInt);
+      UsA = cj.PCJ;
+      PA = cj.UpCJ;
+      rhoA = cj.rhoCJ;
+    } else {
+      // Incident shock mode
+      const result = Solver.solveIncident(matA, matB, matA.P1);
+      if (result === null) {
+        this._showError('Solver failed — no bracketing solution found. Check your inputs.');
+        return;
+      }
+      UpInt = result.UpInt;
+      Up1 = result.Up1;
+      PInt = Physics.targetHugoniot(UpInt, matB.rho0, matB.C0, matB.s, matB.s2);
+      dUpA = Up1 - UpInt;
+      const dUpAbs = Math.abs(dUpA);
+      UsA = dUpAbs > 1e-15 ? Physics.shockVelocity(matA.C0, matA.s, matA.s2, dUpAbs) : 0;
+      UsB = Physics.shockVelocity(matB.C0, matB.s, matB.s2, UpInt);
+      PA = PInt;
+      PB = Physics.pressure(matB.rho0, UsB, UpInt);
+      rhoA = dUpAbs > 1e-15 ? Physics.density(matA.rho0, UsA, dUpAbs) : matA.rho0;
+      rhoB = Physics.density(matB.rho0, UsB, UpInt);
+    }
+
+    // Display results
+    this._displayResults(matA, matB, UpInt, PInt, UsA, UsB, PA, PB, rhoA, rhoB, dUpA, Up1, cj);
+
+    // Update plot
+    const bcOpts = matA.bcType === 'shock' ? { Up1 } : null;
+    Plotter.plot(matA, matB, UpInt, PInt, this._dark, matA.bcType, bcOpts);
+  },
+
+  _displayResults(matA, matB, UpInt, PInt, UsA, UsB, PA, PB, rhoA, rhoB, dUpA, Up1, cj) {
+    const setText = (id, val, decimals = 4) => {
+      this._el(id).textContent = Number(val).toFixed(decimals);
+    };
+
+    // Update names
+    this._el('resNameA').textContent = matA.name;
+    this._el('resNameB').textContent = matB.name;
+
+    // Interface values
+    setText('resUpInt', UpInt, 3);
+    setText('resPInt', PInt, 3);
+
+    // Detonation mode: relabel Material A results to show CJ state
+    if (matA.bcType === 'detonation') {
+      this._el('resALabel1').textContent = 'CJ Particle Velocity, U\u209A\u1D3C\u1D35';
+      this._el('resAUnit1').textContent = 'km/s';
+      this._el('resALabel2').textContent = 'CJ Pressure, P\u1D3C\u1D35';
+      this._el('resAUnit2').textContent = 'GPa';
+      this._el('resALabel3').textContent = 'CJ Density';
+      this._el('resAUnit3').textContent = 'g/cm\u00B3';
+    } else {
+      this._el('resALabel1').textContent = 'Particle Velocity Jump, \u0394U\u209A';
+      this._el('resAUnit1').textContent = 'km/s';
+      this._el('resALabel2').textContent = 'Shock Velocity, U\u209B';
+      this._el('resAUnit2').textContent = 'km/s';
+      this._el('resALabel3').textContent = 'Shocked Density';
+      this._el('resAUnit3').textContent = 'g/cm\u00B3';
+    }
+
+    // Per-material results
+    setText('resUpAval', matA.bcType === 'detonation' ? PA : dUpA, 3);
+    setText('resUsAval', UsA, 3);
+    setText('resUsBval', UsB, 3);
+    setText('resUpBval', UpInt, 3);
+    setText('resRhoAval', rhoA, 3);
+    setText('resRhoBval', rhoB, 3);
+
+    // Show results section
+    this._el('results').style.display = 'block';
+  },
+
+
+
+  loadExample() {
+    this._el('nameA').value = '2024 Aluminum';
+    this._el('rho0A').value = '2.785';
+    this._el('C0A').value = '5.328';
+    this._el('sA').value = '1.338';
+    this._el('s2A').value = '0';
+    this._el('bcTypeA').value = 'flyer';
+    this._el('Vimp').value = '1.8';
+    this._toggleBCInputs('flyer');
+    this._el('nameB').value = '304 Stainless steel';
+    this._el('rho0B').value = '7.896';
+    this._el('C0B').value = '4.569';
+    this._el('sB').value = '1.49';
+    this._el('s2B').value = '0';
+
+    // Set dropdown selections to match
+    const matchKey = (name) => {
+      return Object.keys(MATERIALS).find(k => k.toLowerCase().includes(name.toLowerCase())) || '';
+    };
+    const presetA = matchKey(this._text('nameA'));
+    const presetB = matchKey(this._text('nameB'));
+    this._el('presetA').value = presetA;
+    this._el('presetB').value = presetB;
+    this._lastPreset.A = presetA || null;
+    this._lastPreset.B = presetB || null;
+    if (presetA && MATERIALS[presetA]) this._presetData.A = { ...MATERIALS[presetA], name: presetA };
+    if (presetB && MATERIALS[presetB]) this._presetData.B = { ...MATERIALS[presetB], name: presetB };
+
+    this.calculate();
+  },
+
+  loadExample2() {
+    this._el('nameA').value = '921-T Aluminum';
+    this._el('rho0A').value = '2.833';
+    this._el('C0A').value = '5.041';
+    this._el('sA').value = '1.42';
+    this._el('s2A').value = '0';
+    this._el('bcTypeA').value = 'shock';
+    this._el('P1').value = '25';
+    this._toggleBCInputs('shock');
+    this._el('nameB').value = 'Copper';
+    this._el('rho0B').value = '8.93';
+    this._el('C0B').value = '3.94';
+    this._el('sB').value = '1.489';
+    this._el('s2B').value = '0';
+
+    // Set dropdown selections to match
+    const matchKey = (name) => {
+      return Object.keys(MATERIALS).find(k => k.toLowerCase().includes(name.toLowerCase())) || '';
+    };
+    const presetA = matchKey(this._text('nameA'));
+    const presetB = matchKey(this._text('nameB'));
+    this._el('presetA').value = presetA;
+    this._el('presetB').value = presetB;
+    this._lastPreset.A = presetA || null;
+    this._lastPreset.B = presetB || null;
+    if (presetA && MATERIALS[presetA]) this._presetData.A = { ...MATERIALS[presetA], name: presetA };
+    if (presetB && MATERIALS[presetB]) this._presetData.B = { ...MATERIALS[presetB], name: presetB };
+
+    this.calculate();
+  },
+
+  loadExample3() {
+    this._el('nameA').value = 'TNT';
+    this._el('rho0A').value = '1.638';
+    this._el('bcTypeA').value = 'detonation';
+    this._el('DA').value = '6.92';
+    this._el('PCJA').value = '19.8';
+    this._toggleBCInputs('detonation');
+    this._el('nameB').value = 'Polyethylene';
+    this._el('rho0B').value = '0.915';
+    this._el('C0B').value = '2.901';
+    this._el('sB').value = '1.481';
+    this._el('s2B').value = '0';
+
+    this._el('presetA').value = '';
+    this._lastPreset.A = null;
+    this._presetData.A = null;
+
+    const matchKey = (name) => {
+      return Object.keys(MATERIALS).find(k => k.toLowerCase().includes(name.toLowerCase())) || '';
+    };
+    const presetB = matchKey(this._text('nameB'));
+    this._el('presetB').value = presetB;
+    this._lastPreset.B = presetB || null;
+    if (presetB && MATERIALS[presetB]) this._presetData.B = { ...MATERIALS[presetB], name: presetB };
+
+    this.calculate();
+  },
+
+  // Toggle input visibility based on BC mode
+  _toggleBCInputs(mode) {
+    this._el('vimpGroup').style.display = mode === 'flyer' ? '' : 'none';
+    this._el('p1Group').style.display = mode === 'shock' ? '' : 'none';
+    this._el('usUpGroupA').style.display = mode === 'detonation' ? 'none' : '';
+    this._el('detGroupA').style.display = mode === 'detonation' ? '' : 'none';
+  },
+
+  toggleTheme() {
+    this._dark = !this._dark;
+    localStorage.setItem('theme', this._dark ? 'dark' : 'light');
+    this._applyTheme();
+    // Re-plot if results are visible
+    const resultsEl = this._el('results');
+    if (resultsEl.style.display === 'block') {
+      const matA = this._getMatA();
+      const matB = this._getMatB();
+      const UpInt = parseFloat(this._el('resUpInt').textContent);
+      const PInt = parseFloat(this._el('resPInt').textContent);
+      if (!isNaN(UpInt) && !isNaN(PInt)) {
+        const bcOpts = matA.bcType === 'shock'
+          ? { Up1: Physics.solveUpFromPressure(matA.P1, matA.rho0, matA.C0, matA.s, matA.s2) }
+          : null;
+        Plotter.plot(matA, matB, UpInt, PInt, this._dark, matA.bcType, bcOpts);
+      }
+    }
+  },
+
+  // Toggle collapsible sections
+  _toggleCollapsible(el) {
+    el.classList.toggle('open');
+  },
+
+  _bindEvents() {
+    this._el('btnCalc').addEventListener('click', () => this.calculate());
+    this._el('btnSwap').addEventListener('click', () => this._swapMaterials());
+    this._el('btnExample').addEventListener('click', () => this.loadExample());
+    this._el('btnExample2').addEventListener('click', () => this.loadExample2());
+    this._el('btnExample3').addEventListener('click', () => this.loadExample3());
+    this._el('btnTheme').addEventListener('click', () => this.toggleTheme());
+
+    // Boundary condition mode toggle
+    this._el('bcTypeA').addEventListener('change', (e) => this._toggleBCInputs(e.target.value));
+
+    // Preset material dropdowns
+    this._el('presetA').addEventListener('change', () => this._onPresetChange('A'));
+    this._el('presetB').addEventListener('change', () => this._onPresetChange('B'));
+    this._el('resetPresetA').addEventListener('click', () => this._resetPreset('A'));
+    this._el('resetPresetB').addEventListener('click', () => this._resetPreset('B'));
+
+    // Keyboard shortcut: Enter to calculate
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+        e.preventDefault();
+        this.calculate();
+      }
+    });
+
+    // Collapsible sections
+    document.querySelectorAll('.collapsible-header').forEach(hdr => {
+      hdr.addEventListener('click', () => {
+        this._toggleCollapsible(hdr.parentElement);
+      });
+    });
+  }
+};
+
+// ================================================================
+// Initialization
+// ================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  UI.init();
+});
+</script>
+
+</body>
+</html>
