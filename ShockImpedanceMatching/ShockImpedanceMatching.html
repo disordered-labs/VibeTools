@@ -398,8 +398,12 @@ kbd {
       <input type="number" id="Vimp" step="any" min="0.001" value="2.0" placeholder="2.0">
     </div>
     <div class="form-group" id="p1Group" style="display:none;">
-      <label>Shock wave pressure <span class="unit">(GPa)</span></label>
+      <label id="p1ALabel">Shock wave pressure <span class="unit">(GPa)</span></label>
       <input type="number" id="P1" step="any" min="0.001" value="20" placeholder="20">
+    </div>
+    <div class="form-group" id="p1BGroup" style="display:none;">
+      <label id="p1BLabel">Shock wave pressure <span class="unit">(GPa)</span></label>
+      <input type="number" id="P1B" step="any" min="0" value="0" placeholder="0">
     </div>
     <div id="detGroupA" style="display:none;">
       <div class="form-group">
@@ -441,10 +445,10 @@ kbd {
     </div>
     <div class="form-group">
       <label>Quadratic coefficient, <span class="unit">s<sub>2</sub></span> <span class="unit">(s/km)</span></label>
-      <input type="number" id="s2B" step="any" value="0" placeholder="0">
+        <input type="number" id="s2B" step="any" value="0" placeholder="0">
+      </div>
     </div>
   </div>
-</div>
 
 <div class="btn-row">
   <div class="btn-group">
@@ -550,6 +554,16 @@ kbd {
       P<sub>r</sub>(U<sub>p</sub>) = &rho;<sub>0,A</sub>&thinsp;(C<sub>0,A</sub> + s<sub>A</sub>&thinsp;U<sub>p,m</sub> + s<sub>2,A</sub>&thinsp;U<sub>p,m</sub><sup>2</sup>)&thinsp;U<sub>p,m</sub><br>
       U<sub>p,m</sub> = 2&thinsp;U<sub>p1</sub> &minus; U<sub>p</sub>
     </div>
+    <p style="margin-top:8px;"><strong>Two-shock interaction</strong> &mdash; when a second shock wave in Material B (pressure <em>P<sub>1B</sub></em>) arrives from the opposite side simultaneously with A&rsquo;s shock, the interface state is found by balancing both reflected Hugoniots:</p>
+    <div class="eq">
+      <span class="eq-label">Material A reflected Hugoniot (center at U<sub>p1,A</sub>)</span>
+      P<sub>A</sub>(U<sub>p</sub>) = &rho;<sub>0,A</sub>&thinsp;(C<sub>0,A</sub> + s<sub>A</sub>&thinsp;(2U<sub>p1,A</sub> &minus; U<sub>p</sub>) + s<sub>2,A</sub>&thinsp;(2U<sub>p1,A</sub> &minus; U<sub>p</sub>)<sup>2</sup>)&thinsp;(2U<sub>p1,A</sub> &minus; U<sub>p</sub>)
+    </div>
+    <div class="eq">
+      <span class="eq-label">Material B reflected Hugoniot (center at &minus;U<sub>p1,B</sub>)</span>
+      P<sub>B</sub>(U<sub>p</sub>) = &rho;<sub>0,B</sub>&thinsp;(C<sub>0,B</sub> + s<sub>B</sub>&thinsp;(2U<sub>p1,B</sub> + U<sub>p</sub>) + s<sub>2,B</sub>&thinsp;(2U<sub>p1,B</sub> + U<sub>p</sub>)<sup>2</sup>)&thinsp;(2U<sub>p1,B</sub> + U<sub>p</sub>)
+    </div>
+    <p>The interface solution satisfies <em>P<sub>A</sub>(U<sub>p</sub>) = P<sub>B</sub>(U<sub>p</sub>)</em>. Setting <em>P<sub>1B</sub> = 0</em> recovers the single-shock case exactly.</p>
     <p style="margin-top:8px;"><strong>Impedance matching</strong> &mdash; at the flyer/target interface, pressure and particle velocity are continuous:</p>
     <div class="eq">
       <span class="eq-label">Target Hugoniot (centered at rest)</span>
@@ -1044,6 +1058,21 @@ const Physics = {
     return UpMirror >= 0 ? this.targetHugoniot(UpMirror, rho0, C0, s, s2) : 0;
   },
 
+  // Generalized reflected Hugoniot for any initial shock direction
+  // sign: +1 for right-going initial shock (A), -1 for left-going initial shock (B)
+  // Up1: magnitude of initial particle velocity (always positive)
+  generalizedReflectedHugoniot(Up, rho0, C0, s, s2, Up1, sign) {
+    const mirror = 2 * Up1 - sign * Up;
+    return mirror >= 0 ? this.targetHugoniot(mirror, rho0, C0, s, s2) : 0;
+  },
+
+  // Two-shock difference function
+  // f(Up) = P_reflected_A(Up) - P_reflected_B(Up)
+  f_two_shock(Up, matA, matB, Up1A, Up1B) {
+    return this.generalizedReflectedHugoniot(Up, matA.rho0, matA.C0, matA.s, matA.s2, Up1A, 1)
+         - this.generalizedReflectedHugoniot(Up, matB.rho0, matB.C0, matB.s, matB.s2, Up1B, -1);
+  },
+
   // Difference function for incident shock mode
   // f(Up) = P_reflected_A(Up) - P_principal_B(Up)
   f_incident(Up, matA, matB, Up1) {
@@ -1077,7 +1106,7 @@ const Physics = {
 
   // Gamma-law product isentrope: pressure at a given particle velocity
   // Inverts the analytic Up(P) relation via bisection
-  productPressure(Up, rho0, D, gamma, tol = 1e-10, maxIter = 200) {
+  productPressure(Up, rho0, D, gamma, tol = 1e-10, maxIter = 250) {
     const cj = this.detonationCJ(rho0, D, gamma);
     const uMax = cj.UpCJ + 2 * cj.cCJ / (gamma - 1);
 
@@ -1125,7 +1154,7 @@ const Physics = {
 
   // Solve for Up on principal Hugoniot given pressure P (bisection)
   // P = rho0 * (C0 + s*Up + s2*Up^2) * Up
-  solveUpFromPressure(P, rho0, C0, s, s2, tol = 1e-8, maxIter = 200) {
+  solveUpFromPressure(P, rho0, C0, s, s2, tol = 1e-8, maxIter = 250) {
     let a = 0;
     let b = Math.max(1, 10 * P / (rho0 * C0));
     let fb = this.targetHugoniot(b, rho0, C0, s, s2) - P;
@@ -1159,7 +1188,7 @@ const Solver = {
   // Bisection root finding on f(Up) = 0 over Up in [aLower, aUpper]
   // f must change sign across the interval
   // tol: convergence tolerance [km/s], maxIter: maximum iterations
-  solve(matA, matB, tol = 1e-8, maxIter = 200) {
+  solve(matA, matB, tol = 1e-8, maxIter = 250) {
     const Vimp = matA.Vimp;
     let a = 0;
     let b = Vimp;
@@ -1198,7 +1227,7 @@ const Solver = {
   // Solver for incident shock mode
   // Given P1 (initial shock pressure in matA), find interface state
   // Returns { UpInt, Up1 } or null
-  solveIncident(matA, matB, P1, tol = 1e-8, maxIter = 200) {
+  solveIncident(matA, matB, P1, tol = 1e-8, maxIter = 250) {
     // Step 1: Solve for Up1 on A's principal Hugoniot
     const Up1 = Physics.solveUpFromPressure(P1, matA.rho0, matA.C0, matA.s, matA.s2);
 
@@ -1243,9 +1272,42 @@ const Solver = {
     return { UpInt: (a + b) / 2, Up1 };
   },
 
+  // Solver for two-shock mode
+  // Given P1A (initial shock pressure in matA) and P1B (initial shock pressure in matB)
+  // Returns UpInt or null
+  solveTwoShock(matA, matB, P1A, P1B, tol = 1e-8, maxIter = 250) {
+    const Up1A = P1A > 0 ? Physics.solveUpFromPressure(P1A, matA.rho0, matA.C0, matA.s, matA.s2) : 0;
+    const Up1B = P1B > 0 ? Physics.solveUpFromPressure(P1B, matB.rho0, matB.C0, matB.s, matB.s2) : 0;
+
+    if (Up1A === 0 && Up1B === 0) return 0;
+
+    let a = -2 * Up1B;
+    let b = 2 * Up1A;
+
+    let fa = Physics.f_two_shock(a, matA, matB, Up1A, Up1B);
+    let fb = Physics.f_two_shock(b, matA, matB, Up1A, Up1B);
+
+    for (let iter = 0; fa * fb >= 0 && iter < 20; iter++) {
+      if (fa >= 0) { a *= 2; fa = Physics.f_two_shock(a, matA, matB, Up1A, Up1B); }
+      if (fb <= 0) { b *= 2; fb = Physics.f_two_shock(b, matA, matB, Up1A, Up1B); }
+    }
+
+    if (fa * fb >= 0) return null;
+
+    let mid, fmid;
+    for (let i = 0; i < maxIter; i++) {
+      mid = (a + b) / 2;
+      fmid = Physics.f_two_shock(mid, matA, matB, Up1A, Up1B);
+      if (Math.abs(fmid) < 1e-12 || (b - a) / 2 < tol) return mid;
+      if (fa * fmid < 0) { b = mid; fb = fmid; }
+      else { a = mid; fa = fmid; }
+    }
+    return (a + b) / 2;
+  },
+
   // Bisection root finding for detonation — inert interface
   // f(Up) = P_products(Up) - P_inert(Up) over Up in [0, D]
-  solveDetonation(matA, matB, tol = 1e-8, maxIter = 200) {
+  solveDetonation(matA, matB, tol = 1e-8, maxIter = 250) {
     const D = matA.D;
     let a = 0, b = D;
 
@@ -1291,28 +1353,28 @@ const Plotter = {
     const isDetonation = bcType === 'detonation';
     const isShock = bcType === 'shock';
     const Vimp = isFlyer ? matA.Vimp : null;
-    const Up1 = isShock ? bcOpts.Up1 : null;
+    const Up1A = isShock ? bcOpts.Up1A : null;
+    const Up1B = isShock ? bcOpts.Up1B : null;
 
-    // Determine Up range for target Hugoniot
+    // Determine Up range
     const axisMax = isFlyer
       ? Math.max(Vimp * 1.25, Vimp + 2)
       : isDetonation
         ? Math.max(matA.D * 1.5, matA.D + 3)
-        : Math.max(Up1 * 2, Up1 + 2, 5);
+        : Math.max(Up1A * 2, Up1B * 2, Up1A + 2, Up1B + 2, 5);
 
-    // Target Hugoniot
-    const upTarget = new Array(nPts);
-    const pTarget = new Array(nPts);
-    for (let i = 0; i < nPts; i++) {
-      const up = (i / (nPts - 1)) * axisMax;
-      upTarget[i] = up;
-      pTarget[i] = Physics.targetHugoniot(up, matB.rho0, matB.C0, matB.s, matB.s2);
-    }
-
-    let upFlyer, pFlyer, upRel, pRel, upInit, pInit;
+    let upTarget, pTarget, upFlyer, pFlyer, upRel, pRel, upInit, pInit;
+    let upRelB, pRelB, upInitB, pInitB;
 
     if (isFlyer) {
-      // Flyer reflected Hugoniot: Up from 0 to Vimp
+      upTarget = new Array(nPts);
+      pTarget = new Array(nPts);
+      for (let i = 0; i < nPts; i++) {
+        const up = (i / (nPts - 1)) * axisMax;
+        upTarget[i] = up;
+        pTarget[i] = Physics.targetHugoniot(up, matB.rho0, matB.C0, matB.s, matB.s2);
+      }
+
       upFlyer = new Array(nPts);
       pFlyer = new Array(nPts);
       for (let i = 0; i < nPts; i++) {
@@ -1321,7 +1383,6 @@ const Plotter = {
         pFlyer[i] = Physics.flyerHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Vimp);
       }
 
-      // Release isentrope: from UpInt to Vimp
       const nRel = 100;
       upRel = new Array(nRel);
       pRel = new Array(nRel);
@@ -1332,7 +1393,14 @@ const Plotter = {
         pRel[i] = Physics.flyerHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Vimp);
       }
     } else if (isDetonation) {
-      // Detonation product isentrope via gamma-law EOS
+      upTarget = new Array(nPts);
+      pTarget = new Array(nPts);
+      for (let i = 0; i < nPts; i++) {
+        const up = (i / (nPts - 1)) * axisMax;
+        upTarget[i] = up;
+        pTarget[i] = Physics.targetHugoniot(up, matB.rho0, matB.C0, matB.s, matB.s2);
+      }
+
       const cj = Physics.detonationCJ(matA.rho0, matA.D, matA.gamma);
       const uMax = cj.UpCJ + 2 * cj.cCJ / (matA.gamma - 1);
       const upMax = Math.max(axisMax, uMax);
@@ -1345,11 +1413,9 @@ const Plotter = {
         pFlyer[i] = Physics.productPressure(up, matA.rho0, matA.D, matA.gamma) || 0;
       }
 
-      // CJ state marker
       upInit = [cj.UpCJ];
       pInit = [cj.PCJ];
 
-      // Release path from CJ state to interface (or interface to CJ)
       const nRel = 100;
       upRel = new Array(nRel);
       pRel = new Array(nRel);
@@ -1362,42 +1428,73 @@ const Plotter = {
         pRel[i] = Physics.productPressure(up, matA.rho0, matA.D, matA.gamma) || 0;
       }
     } else {
-      // Incident shock — reflected Hugoniot via mirror method
-      const P1 = Physics.targetHugoniot(Up1, matA.rho0, matA.C0, matA.s, matA.s2);
+      // Two-shock interaction — both reflected Hugoniots
+      const upMin = -axisMax;
       const upMax = axisMax;
-      upFlyer = new Array(nPts);
-      pFlyer = new Array(nPts);
-      for (let i = 0; i < nPts; i++) {
-        const up = (i / (nPts - 1)) * upMax;
+      const nFull = nPts;
+
+      // A's reflected Hugoniot (blue)
+      upFlyer = new Array(nFull);
+      pFlyer = new Array(nFull);
+      for (let i = 0; i < nFull; i++) {
+        const up = upMin + (i / (nFull - 1)) * (upMax - upMin);
         upFlyer[i] = up;
-        pFlyer[i] = Physics.reflectedHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Up1);
+        pFlyer[i] = Physics.generalizedReflectedHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Up1A, 1);
       }
 
-      // Initial shock state marker
-      upInit = [Up1];
-      pInit = [P1];
+      // B's reflected Hugoniot (red)
+      upTarget = new Array(nFull);
+      pTarget = new Array(nFull);
+      for (let i = 0; i < nFull; i++) {
+        const up = upMin + (i / (nFull - 1)) * (upMax - upMin);
+        upTarget[i] = up;
+        pTarget[i] = Physics.generalizedReflectedHugoniot(up, matB.rho0, matB.C0, matB.s, matB.s2, Up1B, -1);
+      }
 
-      // Release isentrope: from UpInt toward Up1
+      // A's initial shock state marker
+      const P1A = Physics.targetHugoniot(Up1A, matA.rho0, matA.C0, matA.s, matA.s2);
+      upInit = [Up1A];
+      pInit = [P1A];
+
+      // B's initial shock state marker
+      const P1Bmat = Physics.targetHugoniot(Up1B, matB.rho0, matB.C0, matB.s, matB.s2);
+      upInitB = [-Up1B];
+      pInitB = [P1Bmat];
+
+      // A's release path: from UpInt toward Up1A
       const nRel = 100;
       upRel = new Array(nRel);
       pRel = new Array(nRel);
-      const start = Math.min(UpInt, Up1);
-      const end = Math.max(UpInt, Up1);
+      const startA = Math.min(UpInt, Up1A);
+      const endA = Math.max(UpInt, Up1A);
       for (let i = 0; i < nRel; i++) {
         const frac = i / (nRel - 1);
-        const up = start + (end - start) * frac;
+        const up = startA + (endA - startA) * frac;
         upRel[i] = up;
-        pRel[i] = Physics.reflectedHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Up1);
+        pRel[i] = Physics.generalizedReflectedHugoniot(up, matA.rho0, matA.C0, matA.s, matA.s2, Up1A, 1);
+      }
+
+      // B's release path: from UpInt toward -Up1B
+      upRelB = new Array(nRel);
+      pRelB = new Array(nRel);
+      const startB = Math.min(UpInt, -Up1B);
+      const endB = Math.max(UpInt, -Up1B);
+      for (let i = 0; i < nRel; i++) {
+        const frac = i / (nRel - 1);
+        const up = startB + (endB - startB) * frac;
+        upRelB[i] = up;
+        pRelB[i] = Physics.generalizedReflectedHugoniot(up, matB.rho0, matB.C0, matB.s, matB.s2, Up1B, -1);
       }
     }
 
-    return { upTarget, pTarget, upFlyer, pFlyer, upRel, pRel, upInit, pInit, isFlyer, isDetonation };
+    return { upTarget, pTarget, upFlyer, pFlyer, upRel, pRel, upInit, pInit, isFlyer, isDetonation, upRelB, pRelB, upInitB, pInitB };
   },
 
   plot(matA, matB, UpInt, PInt, dark, bcType, bcOpts) {
     const curves = this._generateCurves(matA, matB, UpInt, bcType, bcOpts);
     const nameA = matA.name || 'Material A';
     const nameB = matB.name || 'Material B';
+    const isShock = bcType === 'shock';
     const maxP = Math.max(...curves.pTarget, ...curves.pFlyer) * 1.12;
 
     const isDark = dark || false;
@@ -1408,12 +1505,16 @@ const Plotter = {
     const legendBg = isDark ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.9)';
     const legendBorder = isDark ? '#334155' : '#e2e8f0';
 
+    const targetLabel = curves.isFlyer || curves.isDetonation
+      ? `${nameB} — Hugoniot`
+      : `${nameB} — Reflected Hugoniot (from shocked state)`;
+
     const traceTarget = {
       x: curves.upTarget,
       y: curves.pTarget,
       type: 'scatter',
       mode: 'lines',
-      name: `${nameB} (target) — Hugoniot`,
+      name: targetLabel,
       line: { color: '#dc2626', width: 2.5 }
     };
 
@@ -1449,17 +1550,42 @@ const Plotter = {
 
     const traces = [traceTarget, traceFlyer, traceRelease];
 
-    // Initial state marker (CJ point for detonation, incident shock for shock mode)
+    // B's release path (two-shock mode)
+    if (isShock && curves.upRelB) {
+      traces.push({
+        x: curves.upRelB,
+        y: curves.pRelB,
+        type: 'scatter',
+        mode: 'lines',
+        name: `${nameB} reflected path`,
+        line: { color: '#dc2626', width: 2, dash: 'dash' }
+      });
+    }
+
+    // Initial state markers
     if (curves.upInit) {
       const markerName = curves.isDetonation
         ? `${nameA} CJ state`
         : `${nameA} initial shock state`;
+      const markerColor = curves.isDetonation ? '#f59e0b' : '#f59e0b';
       traces.push({
         x: curves.upInit,
         y: curves.pInit,
         type: 'scatter',
         mode: 'markers',
         name: markerName,
+        marker: { color: markerColor, size: 12, symbol: 'diamond', line: { color: '#d97706', width: 2 } }
+      });
+    }
+
+    // B's initial shock state marker (two-shock mode)
+    if (isShock && curves.upInitB) {
+      traces.push({
+        x: curves.upInitB,
+        y: curves.pInitB,
+        type: 'scatter',
+        mode: 'markers',
+        name: `${nameB} initial shock state`,
         marker: { color: '#f59e0b', size: 12, symbol: 'diamond', line: { color: '#d97706', width: 2 } }
       });
     }
@@ -1523,7 +1649,7 @@ const Plotter = {
 
 const UI = {
 
-  _ids: ['nameA', 'rho0A', 'C0A', 'sA', 's2A', 'Vimp', 'P1', 'nameB', 'rho0B', 'C0B', 'sB', 's2B'],
+  _ids: ['nameA', 'rho0A', 'C0A', 'sA', 's2A', 'Vimp', 'P1', 'nameB', 'rho0B', 'C0B', 'sB', 's2B', 'P1B'],
   _dark: false,
   _lastPreset: { A: null, B: null },
   _presetData: { A: null, B: null },
@@ -1684,13 +1810,18 @@ const UI = {
   },
 
   _getMatB() {
-    return {
+    const bcType = this._el('bcTypeA').value;
+    const obj = {
       name: this._text('nameB') || 'Material B',
       rho0: this._val('rho0B'),
       C0: this._val('C0B'),
       s: this._val('sB'),
       s2: this._val('s2B')
     };
+    if (bcType === 'shock') {
+      obj.P1 = this._val('P1B');
+    }
+    return obj;
   },
 
   _validate(matA, matB) {
@@ -1717,7 +1848,9 @@ const UI = {
     if (matA.bcType === 'flyer') {
       check(matA.Vimp, 'Impact velocity');
     } else if (matA.bcType === 'shock') {
-      check(matA.P1, 'Initial shock pressure');
+      check(matA.P1, 'Shock pressure in Material A');
+      if (matB.P1 === undefined || matB.P1 === null || isNaN(matB.P1)) errors.push('Shock pressure in Material B is missing or not a number');
+      else if (matB.P1 < 0) errors.push('Shock pressure in Material B cannot be negative');
     }
     check(matB.rho0, 'Density of target');
     check(matB.C0, 'C0 of target');
@@ -1788,30 +1921,32 @@ const UI = {
       PA = cj.UpCJ;
       rhoA = cj.rhoCJ;
     } else {
-      // Incident shock mode
-      const result = Solver.solveIncident(matA, matB, matA.P1);
-      if (result === null) {
+      // Two-shock interaction mode
+      UpInt = Solver.solveTwoShock(matA, matB, matA.P1, matB.P1);
+      if (UpInt === null) {
         this._showError('Solver failed — no bracketing solution found. Check your inputs.');
         return;
       }
-      UpInt = result.UpInt;
-      Up1 = result.Up1;
-      PInt = Physics.targetHugoniot(UpInt, matB.rho0, matB.C0, matB.s, matB.s2);
-      dUpA = Up1 - UpInt;
-      const dUpAbs = Math.abs(dUpA);
-      UsA = dUpAbs > 1e-15 ? Physics.shockVelocity(matA.C0, matA.s, matA.s2, dUpAbs) : 0;
-      UsB = Physics.shockVelocity(matB.C0, matB.s, matB.s2, UpInt);
+      const Up1A = matA.P1 > 0 ? Physics.solveUpFromPressure(matA.P1, matA.rho0, matA.C0, matA.s, matA.s2) : 0;
+      const Up1B = matB.P1 > 0 ? Physics.solveUpFromPressure(matB.P1, matB.rho0, matB.C0, matB.s, matB.s2) : 0;
+      PInt = Physics.generalizedReflectedHugoniot(UpInt, matB.rho0, matB.C0, matB.s, matB.s2, Up1B, -1);
+      dUpA = Up1A - UpInt;
+      const dUpB = Up1B + UpInt;
+      const dUpAbsA = Math.abs(dUpA);
+      const dUpAbsB = Math.abs(dUpB);
+      UsA = dUpAbsA > 1e-15 ? Physics.shockVelocity(matA.C0, matA.s, matA.s2, dUpAbsA) : 0;
+      UsB = dUpAbsB > 1e-15 ? Physics.shockVelocity(matB.C0, matB.s, matB.s2, dUpAbsB) : 0;
       PA = PInt;
-      PB = Physics.pressure(matB.rho0, UsB, UpInt);
-      rhoA = dUpAbs > 1e-15 ? Physics.density(matA.rho0, UsA, dUpAbs) : matA.rho0;
-      rhoB = Physics.density(matB.rho0, UsB, UpInt);
+      PB = PInt;
+      rhoA = dUpAbsA > 1e-15 ? Physics.density(matA.rho0, UsA, dUpAbsA) : matA.rho0;
+      rhoB = dUpAbsB > 1e-15 ? Physics.density(matB.rho0, UsB, dUpAbsB) : matB.rho0;
     }
 
     // Display results
-    this._displayResults(matA, matB, UpInt, PInt, UsA, UsB, PA, PB, rhoA, rhoB, dUpA, Up1, cj);
+    this._displayResults(matA, matB, UpInt, PInt, UsA, UsB, PA, PB, rhoA, rhoB, dUpA, null, cj);
 
     // Update plot
-    const bcOpts = matA.bcType === 'shock' ? { Up1 } : null;
+    const bcOpts = matA.bcType === 'shock' ? { Up1A, Up1B } : null;
     Plotter.plot(matA, matB, UpInt, PInt, this._dark, matA.bcType, bcOpts);
   },
 
@@ -1898,13 +2033,14 @@ const UI = {
     this._el('s2A').value = '0';
     this._el('bcTypeA').value = 'shock';
     this._el('P1').value = '25';
+    this._el('P1B').value = '0';
     this._toggleBCInputs('shock');
     this._el('nameB').value = 'Copper';
     this._el('rho0B').value = '8.93';
     this._el('C0B').value = '3.94';
     this._el('sB').value = '1.489';
     this._el('s2B').value = '0';
-
+ 
     // Set dropdown selections to match
     const matchKey = (name) => {
       return Object.keys(MATERIALS).find(k => k.toLowerCase().includes(name.toLowerCase())) || '';
@@ -1953,8 +2089,13 @@ const UI = {
   _toggleBCInputs(mode) {
     this._el('vimpGroup').style.display = mode === 'flyer' ? '' : 'none';
     this._el('p1Group').style.display = mode === 'shock' ? '' : 'none';
+    this._el('p1BGroup').style.display = mode === 'shock' ? '' : 'none';
     this._el('usUpGroupA').style.display = mode === 'detonation' ? 'none' : '';
     this._el('detGroupA').style.display = mode === 'detonation' ? '' : 'none';
+    if (mode === 'shock') {
+      this._el('p1ALabel').innerHTML = 'Shock wave pressure, A <span class="unit">(GPa)</span>';
+      this._el('p1BLabel').innerHTML = 'Shock wave pressure, B <span class="unit">(GPa)</span>';
+    }
   },
 
   toggleTheme() {
@@ -1970,7 +2111,10 @@ const UI = {
       const PInt = parseFloat(this._el('resPInt').textContent);
       if (!isNaN(UpInt) && !isNaN(PInt)) {
         const bcOpts = matA.bcType === 'shock'
-          ? { Up1: Physics.solveUpFromPressure(matA.P1, matA.rho0, matA.C0, matA.s, matA.s2) }
+          ? {
+              Up1A: Physics.solveUpFromPressure(matA.P1, matA.rho0, matA.C0, matA.s, matA.s2),
+              Up1B: Physics.solveUpFromPressure(matB.P1, matB.rho0, matB.C0, matB.s, matB.s2)
+            }
           : null;
         Plotter.plot(matA, matB, UpInt, PInt, this._dark, matA.bcType, bcOpts);
       }
