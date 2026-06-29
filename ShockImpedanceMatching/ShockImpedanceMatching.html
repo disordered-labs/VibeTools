@@ -394,7 +394,7 @@ kbd {
       </select>
     </div>
     <div class="form-group" id="vimpGroup">
-      <label>Flyer plate velocity <span class="unit">(km/s)</span></label>
+      <label>Velocity, Material A <span class="unit">(km/s)</span></label>
       <input type="number" id="Vimp" step="any" min="0.001" value="2.0" placeholder="2.0">
     </div>
     <div class="form-group" id="p1Group" style="display:none;">
@@ -407,17 +407,17 @@ kbd {
     </div>
     <div id="detGroupA" style="display:none;">
       <div class="form-group">
-        <label>Detonation velocity, <span class="unit">D</span> <span class="unit">(km/s)</span></label>
+        <label>Detonation velocity, Material A <span class="unit">(km/s)</span></label>
         <input type="number" id="DA" step="any" min="0.001" value="8.9" placeholder="8.9">
       </div>
       <div class="form-group">
-        <label>CJ pressure, <span class="unit">P<sub>CJ</sub></span> <span class="unit">(GPa)</span></label>
+        <label>CJ pressure, Material A <span class="unit">(GPa)</span></label>
         <input type="number" id="PCJA" step="any" min="0.001" value="21.15" placeholder="21.15">
       </div>
     </div>
   </div>
   <div class="panel" id="panelB">
-    <h2>Material B &mdash; Target</h2>
+    <h2>Material B</h2>
     <div class="form-group">
       <label>Preset Material</label>
       <div style="display:flex;gap:8px;">
@@ -2093,8 +2093,8 @@ const UI = {
     this._el('usUpGroupA').style.display = mode === 'detonation' ? 'none' : '';
     this._el('detGroupA').style.display = mode === 'detonation' ? '' : 'none';
     if (mode === 'shock') {
-      this._el('p1ALabel').innerHTML = 'Shock wave pressure, A <span class="unit">(GPa)</span>';
-      this._el('p1BLabel').innerHTML = 'Shock wave pressure, B <span class="unit">(GPa)</span>';
+      this._el('p1ALabel').innerHTML = 'Shock wave pressure, Material A <span class="unit">(GPa)</span>';
+      this._el('p1BLabel').innerHTML = 'Shock wave pressure, Material B <span class="unit">(GPa)</span>';
     }
   },
 
